@@ -2,8 +2,7 @@
 
 ## Stack
 
-- **Backend:** OpenLiberty (Jakarta EE 11 Web Profile + Jakarta Data 1.0 +
-  MicroProfile 7.1), Java 21
+- **Backend:** OpenLiberty (Jakarta EE 11 Web Profile + MicroProfile 7.1), Java 21
 - **Frontend:** Angular 20 (standalone components, signals) + Angular CDK
   (drag & drop) + `keycloak-js`
 - **Auth:** Keycloak 26, token-based (MicroProfile JWT)

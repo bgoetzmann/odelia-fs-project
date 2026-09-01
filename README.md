@@ -8,8 +8,8 @@ PostgreSQL, built over 4 days. See `fs-course-plan.md` for the full plan.
 ## Layout
 
 ```
-backend/     Jakarta EE 11 Web Profile + Jakarta Data 1.0 + MicroProfile 7.1 on OpenLiberty
-frontend/    Angular 19 (standalone components, signals)
+backend/     Jakarta EE 11 Web Profile + MicroProfile 7.1 on OpenLiberty
+frontend/    Angular 20 (standalone components, signals) + Angular CDK
 keycloak/    realm import directory — filled in on day 3
 docker-compose.yml
 ```

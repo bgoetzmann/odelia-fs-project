@@ -20,13 +20,6 @@
         <liberty.var.default.http.port>9080</liberty.var.default.http.port>
         <liberty.var.default.https.port>9443</liberty.var.default.https.port>
 
-        <!-- Database connection, overridable from the environment (docker-compose) -->
-        <liberty.var.db.host>localhost</liberty.var.db.host>
-        <liberty.var.db.port>5432</liberty.var.db.port>
-        <liberty.var.db.name>kanban</liberty.var.db.name>
-        <liberty.var.db.user>kanban</liberty.var.db.user>
-        <liberty.var.db.password>kanban</liberty.var.db.password>
-
         <postgresql.version>42.7.4</postgresql.version>
     </properties>
 
@@ -84,7 +77,7 @@
                          the <library> element of server.xml -->
                     <copyDependencies>
                         <dependencyGroup>
-                            <location>${server.config.dir}/lib/postgresql</location>
+                            <location>lib/postgresql</location>
                             <dependency>
                                 <groupId>org.postgresql</groupId>
                                 <artifactId>postgresql</artifactId>

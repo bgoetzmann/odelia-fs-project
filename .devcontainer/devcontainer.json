@@ -7,7 +7,7 @@
     "docker-compose.yml"
   ],
   "service": "dev",
-  "workspaceFolder": "/workspace",
+  "workspaceFolder": "/workspace/odelia-fs-project",
 
   // Day 1: only the database comes up with the dev container.
   // Add "keycloak" here on day 3.
@@ -39,7 +39,7 @@
     "DB_HOST": "postgres"
   },
 
-  "postCreateCommand": "cd frontend && npm install",
+  "postCreateCommand": "sudo chown -R vscode:vscode /home/vscode/.m2 && cd frontend && npm install",
 
   "customizations": {
     "vscode": {
