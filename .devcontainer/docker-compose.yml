@@ -1,0 +1,25 @@
+# Merged on top of ../docker-compose.yml by the Dev Container.
+# Adds one service, "dev", where the editor, terminal, Maven and npm live.
+# The students' machines then only need Docker + VS Code (or nothing, with
+# GitHub Codespaces).
+services:
+  dev:
+    image: mcr.microsoft.com/devcontainers/base:ubuntu-24.04
+    # Java + Node are added by the "features" in devcontainer.json.
+    volumes:
+      - ..:/workspace:cached
+      # Keep the Maven cache across rebuilds.
+      - maven-repo:/home/vscode/.m2
+    command: sleep infinity
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: kanban
+      DB_USER: kanban
+      DB_PASSWORD: kanban
+
+volumes:
+  maven-repo:

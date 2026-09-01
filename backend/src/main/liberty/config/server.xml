@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<server description="Kanban server - Day 1 (no security yet)">
+
+    <featureManager>
+        <!-- Jakarta EE 11 Web Profile: CDI, JAX-RS, JPA 3.2, JSON-B, Bean Validation,
+             and Jakarta Data 1.0 (new in EE 11, included in the Web Profile) -->
+        <feature>webProfile-11.0</feature>
+        <!-- MicroProfile 7.1: Config, Health, Metrics, OpenAPI, JWT, Rest Client, Telemetry -->
+        <feature>microProfile-7.1</feature>
+    </featureManager>
+
+    <variable name="default.http.port" defaultValue="9080"/>
+    <variable name="default.https.port" defaultValue="9443"/>
+
+    <!-- Overridable by the DB_HOST / DB_PORT / DB_NAME / DB_USER / DB_PASSWORD
+         environment variables (see docker-compose.yml). -->
+    <variable name="db.host" defaultValue="localhost"/>
+    <variable name="db.port" defaultValue="5432"/>
+    <variable name="db.name" defaultValue="kanban"/>
+    <variable name="db.user" defaultValue="kanban"/>
+    <variable name="db.password" defaultValue="kanban"/>
+
+    <httpEndpoint id="defaultHttpEndpoint"
+                  host="*"
+                  httpPort="${default.http.port}"
+                  httpsPort="${default.https.port}"/>
+
+    <!-- PostgreSQL JDBC driver, put there by the liberty-maven-plugin
+         (copyDependencies) or by the Dockerfile -->
+    <library id="postgresql-library">
+        <fileset dir="${server.config.dir}/lib/postgresql" includes="postgresql-*.jar"/>
+    </library>
+
+    <!-- The data store behind the Jakarta Data repositories -->
+    <dataSource id="kanbanDataSource" jndiName="jdbc/kanban">
+        <jdbcDriver libraryRef="postgresql-library"/>
+        <properties.postgresql serverName="${db.host}"
+                               portNumber="${db.port}"
+                               databaseName="${db.name}"
+                               user="${db.user}"
+                               password="${db.password}"/>
+    </dataSource>
+
+    <!-- The Angular dev server (ng serve) runs on a different origin -->
+    <cors domain="/"
+          allowedOrigins="http://localhost:4200"
+          allowedMethods="GET, POST, PUT, PATCH, DELETE, OPTIONS"
+          allowedHeaders="Content-Type, Accept, Authorization"
+          exposeHeaders="Location"
+          allowCredentials="true"
+          maxAge="3600"/>
+
+    <!-- Day 1 has no security: keep /metrics and /health open -->
+    <mpMetrics authentication="false"/>
+
+    <keyStore id="defaultKeyStore" password="kanbanKeystorePassword"/>
+
+    <applicationManager autoExpand="true"/>
+    <webApplication location="kanban-backend.war" contextRoot="/"/>
+
+</server>

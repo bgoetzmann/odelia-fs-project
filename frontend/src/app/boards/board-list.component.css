@@ -1,0 +1,107 @@
+.boards {
+  max-width: 46rem;
+  margin: 0 auto;
+}
+
+.new-board {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.new-board input {
+  flex: 1;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font: inherit;
+}
+
+button {
+  padding: 0.55rem 0.9rem;
+  border: none;
+  border-radius: 6px;
+  background: #2563eb;
+  color: #fff;
+  font: inherit;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+button.ghost {
+  background: #e2e8f0;
+  color: #1e293b;
+}
+
+button.danger {
+  background: transparent;
+  color: #b91c1c;
+}
+
+.board-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.board {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #fff;
+  padding: 0.75rem 1rem;
+}
+
+.board-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.board-name {
+  background: none;
+  color: #0f172a;
+  font-size: 1.05rem;
+  font-weight: 600;
+  padding: 0;
+  text-align: left;
+  flex: 1;
+}
+
+.meta {
+  color: #64748b;
+  font-size: 0.85rem;
+}
+
+.columns {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.column {
+  flex: 1;
+  padding: 0.75rem;
+  border-radius: 6px;
+  background: #f1f5f9;
+  color: #334155;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+.muted {
+  color: #64748b;
+}
+
+.error {
+  color: #b91c1c;
+  background: #fee2e2;
+  border-radius: 6px;
+  padding: 0.6rem 0.8rem;
+}

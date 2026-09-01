@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.odelia</groupId>
+    <artifactId>kanban-backend</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <packaging>war</packaging>
+    <name>Kanban Backend</name>
+
+    <properties>
+        <maven.compiler.release>21</maven.compiler.release>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <failOnMissingWebXml>false</failOnMissingWebXml>
+        <final.name>kanban-backend</final.name>
+
+        <!-- Liberty dev-mode / container ports -->
+        <liberty.var.default.http.port>9080</liberty.var.default.http.port>
+        <liberty.var.default.https.port>9443</liberty.var.default.https.port>
+
+        <!-- Database connection, overridable from the environment (docker-compose) -->
+        <liberty.var.db.host>localhost</liberty.var.db.host>
+        <liberty.var.db.port>5432</liberty.var.db.port>
+        <liberty.var.db.name>kanban</liberty.var.db.name>
+        <liberty.var.db.user>kanban</liberty.var.db.user>
+        <liberty.var.db.password>kanban</liberty.var.db.password>
+
+        <postgresql.version>42.7.4</postgresql.version>
+    </properties>
+
+    <dependencies>
+        <!-- Jakarta EE 11 Web Profile: CDI, JAX-RS, JPA, JSON-B, Bean Validation,
+             and (new in EE 11) Jakarta Data - jakarta.data-api comes in transitively. -->
+        <dependency>
+            <groupId>jakarta.platform</groupId>
+            <artifactId>jakarta.jakartaee-web-api</artifactId>
+            <version>11.0.0</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- MicroProfile 7.1 (Config, Health, Metrics, OpenAPI, JWT, Rest Client...) -->
+        <dependency>
+            <groupId>org.eclipse.microprofile</groupId>
+            <artifactId>microprofile</artifactId>
+            <version>7.1</version>
+            <type>pom</type>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- PostgreSQL JDBC driver: not on the app classpath, it is copied into
+             the Liberty server's shared library directory (see copy-dependencies). -->
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>${postgresql.version}</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <finalName>${final.name}</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.13.0</version>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-war-plugin</artifactId>
+                <version>3.4.0</version>
+            </plugin>
+
+            <plugin>
+                <groupId>io.openliberty.tools</groupId>
+                <artifactId>liberty-maven-plugin</artifactId>
+                <version>3.11.4</version>
+                <configuration>
+                    <serverName>kanbanServer</serverName>
+                    <!-- Drops the JDBC driver into the location referenced by
+                         the <library> element of server.xml -->
+                    <copyDependencies>
+                        <dependencyGroup>
+                            <location>${server.config.dir}/lib/postgresql</location>
+                            <dependency>
+                                <groupId>org.postgresql</groupId>
+                                <artifactId>postgresql</artifactId>
+                                <version>${postgresql.version}</version>
+                            </dependency>
+                        </dependencyGroup>
+                    </copyDependencies>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>

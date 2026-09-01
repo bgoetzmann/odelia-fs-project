@@ -1,0 +1,50 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: kanban-postgres
+    environment:
+      POSTGRES_DB: kanban
+      POSTGRES_USER: kanban
+      POSTGRES_PASSWORD: kanban
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kanban -d kanban"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # Day 1: the container is here but nothing talks to it yet. It is wired in
+  # on day 3, together with keycloak/kanban-realm.json.
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0
+    container_name: kanban-keycloak
+    command: start-dev --import-realm
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+    volumes:
+      - ./keycloak:/opt/keycloak/data/import:ro
+    ports:
+      - "8081:8080"
+
+  backend:
+    build: ./backend
+    container_name: kanban-backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: kanban
+      DB_USER: kanban
+      DB_PASSWORD: kanban
+    ports:
+      - "9080:9080"
+      - "9443:9443"
+
+volumes:
+  postgres-data:

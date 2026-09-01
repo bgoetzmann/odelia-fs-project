@@ -1,0 +1,57 @@
+{
+  "name": "Kanban full-stack (Java 21 + Node 22)",
+
+  // Reuse the project's compose file and add a "dev" service on top of it.
+  "dockerComposeFile": [
+    "../docker-compose.yml",
+    "docker-compose.yml"
+  ],
+  "service": "dev",
+  "workspaceFolder": "/workspace",
+
+  // Day 1: only the database comes up with the dev container.
+  // Add "keycloak" here on day 3.
+  "runServices": ["postgres"],
+
+  "features": {
+    "ghcr.io/devcontainers/features/java:1": {
+      "version": "21",
+      "jdkDistro": "tem",
+      "installMaven": true,
+      "mavenVersion": "latest"
+    },
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "22"
+    }
+  },
+
+  // 9080 = Liberty (mvn liberty:dev), 4200 = ng serve, 5432 = PostgreSQL
+  "forwardPorts": [9080, 4200, 5432],
+  "portsAttributes": {
+    "9080": { "label": "backend (Liberty)" },
+    "4200": { "label": "frontend (Angular)" },
+    "5432": { "label": "postgres" }
+  },
+
+  // mvn liberty:dev reads DB_HOST (see backend/.../server.xml); inside the
+  // compose network the database is reachable as "postgres".
+  "containerEnv": {
+    "DB_HOST": "postgres"
+  },
+
+  "postCreateCommand": "cd frontend && npm install",
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "redhat.java",
+        "vscjava.vscode-java-debug",
+        "vscjava.vscode-maven",
+        "Open-Liberty.liberty-dev-vscode-ext",
+        "Angular.ng-template",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode"
+      ]
+    }
+  }
+}

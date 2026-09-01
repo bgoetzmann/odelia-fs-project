@@ -1,0 +1,22 @@
+.app-header {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  margin-bottom: 2rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.app-header h1 {
+  margin: 0;
+  font-size: 1.4rem;
+}
+
+.tagline {
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+main {
+  padding: 0 1.5rem 3rem;
+}

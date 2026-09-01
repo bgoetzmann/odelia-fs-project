@@ -1,0 +1,51 @@
+<section class="boards">
+  <form class="new-board" (ngSubmit)="createBoard()">
+    <input
+      name="newBoardName"
+      [(ngModel)]="newBoardName"
+      placeholder="New board name"
+      autocomplete="off"
+      maxlength="120" />
+    <button type="submit" [disabled]="!newBoardName.trim()">Create board</button>
+    <button type="button" class="ghost" (click)="reload()">Refresh</button>
+  </form>
+
+  @if (error()) {
+    <p class="error">{{ error() }}</p>
+  }
+
+  @if (loading()) {
+    <p class="muted">Loading boards…</p>
+  } @else if (boards().length === 0) {
+    <p class="muted">No board yet. Create the first one above.</p>
+  } @else {
+    <ul class="board-list">
+      @for (board of boards(); track board.id) {
+        <li class="board">
+          <div class="board-row">
+            <button class="board-name" type="button" (click)="toggleColumns(board)">
+              {{ board.name }}
+            </button>
+            <span class="meta">
+              {{ board.owner }}
+              @if (board.createdAt) {
+                · {{ board.createdAt | date: 'short' }}
+              }
+            </span>
+            <button class="danger" type="button" (click)="deleteBoard(board)">Delete</button>
+          </div>
+
+          @if (selectedBoardId() === board.id) {
+            <div class="columns">
+              @for (column of columns(); track column.id) {
+                <div class="column">{{ column.name }}</div>
+              } @empty {
+                <span class="muted">No column.</span>
+              }
+            </div>
+          }
+        </li>
+      }
+    </ul>
+  }
+</section>
