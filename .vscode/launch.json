@@ -1,0 +1,24 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            // Start the backend first in a terminal:  cd backend && mvn liberty:dev
+            // Liberty dev mode opens a debug port (7777 by default), then attach here.
+            "type": "java",
+            "name": "Debug backend (attach to liberty:dev)",
+            "request": "attach",
+            "hostName": "localhost",
+            "port": 7777,
+            "projectName": "kanban-backend"
+        },
+        {
+            "type": "java",
+            "name": "Current File",
+            "request": "launch",
+            "mainClass": "${file}"
+        }
+    ]
+}
