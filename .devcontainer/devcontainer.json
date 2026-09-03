@@ -1,5 +1,5 @@
 {
-  "name": "Kanban full-stack (Java 21 + Node 22)",
+  "name": "Kanban full-stack (Jakarta EE + Angular)",
 
   // Reuse the project's compose file and add a "dev" service on top of it.
   "dockerComposeFile": [
@@ -22,7 +22,8 @@
     },
     "ghcr.io/devcontainers/features/node:1": {
       "version": "22"
-    }
+    },
+    "ghcr.io/anthropics/devcontainer-features/claude-code:1.0": {}
   },
 
   // 9080 = Liberty (mvn liberty:dev), 4200 = ng serve, 5432 = PostgreSQL
