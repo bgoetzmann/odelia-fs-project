@@ -5,8 +5,12 @@
         <!-- Jakarta EE 11 Web Profile: CDI, JAX-RS, JPA 3.2, JSON-B, Bean Validation,
              and Jakarta Data 1.0 (new in EE 11, included in the Web Profile) -->
         <feature>webProfile-11.0</feature>
-        <!-- MicroProfile 7.1: Config, Health, Metrics, OpenAPI, JWT, Rest Client, Telemetry -->
+        <!-- MicroProfile 7.1: Config, Health, OpenAPI, JWT, Rest Client, Telemetry -->
         <feature>microProfile-7.1</feature>
+        <!-- MicroProfile Metrics was dropped from the MP 7.1 umbrella; Liberty
+             still ships it standalone. It gives a native Prometheus /metrics
+             endpoint, unlike mpTelemetry which has no Prometheus exporter. -->
+        <feature>mpMetrics-5.1</feature>
     </featureManager>
 
     <variable name="default.http.port" defaultValue="9080"/>

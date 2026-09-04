@@ -1,7 +1,7 @@
 # Kanban — Full-Stack Course Project
 
-OpenLiberty (Jakarta EE 11 Web Profile + Jakarta Data + MicroProfile 7.1) + Angular +
-PostgreSQL, built over 4 days. See `fs-course-plan.md` for the full plan.
+OpenLiberty (Jakarta EE 11 Web Profile + MicroProfile 7.1) + Angular + PostgreSQL,
+built over 4 days. See `fs-course-plan.md` for the full plan.
 
 **Day 1 is implemented: boards and their columns, no security.**
 
@@ -82,11 +82,8 @@ curl -X POST http://localhost:9080/api/boards \
 ## Notes on the stack
 
 - **Jakarta Data 1.0** is new in Jakarta EE 11 and is part of the Web Profile,
-  so `webProfile-11.0` alone is enough — confirmed by Liberty's own startup log
-  (`data-1.0` appears in the installed feature list) and by dropping the
-  `jakarta.data-api` Maven dependency, which compiles fine because
-  `jakarta.jakartaee-web-api:11.0.0` already pulls it in transitively. The
-  repositories (`BoardRepository`, `BoardListRepository`) are interfaces only —
+  so `webProfile-11.0` alone is enough.
+  The repositories (`BoardRepository`, `BoardListRepository`) are interfaces only —
   Liberty generates the implementation, derives the persistence unit from the
   `jdbc/kanban` data source, and creates the tables at startup.
 - `BoardList` references its board by `boardId` rather than by a JPA

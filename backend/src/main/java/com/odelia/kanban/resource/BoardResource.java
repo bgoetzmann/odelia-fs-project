@@ -6,6 +6,7 @@ import com.odelia.kanban.repository.BoardListRepository;
 import com.odelia.kanban.repository.BoardRepository;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.Consumes;
@@ -37,8 +38,12 @@ import java.util.List;
 @Consumes(MediaType.APPLICATION_JSON)
 public class BoardResource {
 
-    private static final String PLACEHOLDER_OWNER = "anonymous";
     private static final List<String> DEFAULT_LISTS = List.of("To do", "Doing", "Done");
+
+    /** Day 1 has no security; on day 3 the owner comes from the JWT subject instead. */
+    @Inject
+    @ConfigProperty(name = "kanban.default.owner", defaultValue = "anonymous")
+    String defaultOwner;
 
     @Inject
     BoardRepository boards;
@@ -70,7 +75,7 @@ public class BoardResource {
         board.setId(null);
         board.setCreatedAt(LocalDateTime.now());
         if (board.getOwner() == null || board.getOwner().isBlank()) {
-            board.setOwner(PLACEHOLDER_OWNER);
+            board.setOwner(defaultOwner);
         }
         Board created = boards.insert(board);
 

@@ -19,6 +19,39 @@
             "name": "Current File",
             "request": "launch",
             "mainClass": "${file}"
+        },
+        {
+            // Start the dev server first in a terminal:  cd frontend && npm start
+            // Then launch this to open Chrome with the debugger attached and
+            // set breakpoints directly in the .ts files (dev build ships source maps).
+            "type": "chrome",
+            "name": "Debug frontend (Chrome)",
+            "request": "launch",
+            "url": "http://localhost:4200",
+            "webRoot": "${workspaceFolder}/frontend",
+            "sourceMaps": true
+        },
+        {
+            // Same as above for Microsoft Edge.
+            "type": "msedge",
+            "name": "Debug frontend (Edge)",
+            "request": "launch",
+            "url": "http://localhost:4200",
+            "webRoot": "${workspaceFolder}/frontend",
+            "sourceMaps": true
+        }
+    ],
+    "compounds": [
+        {
+            // Full-stack debugging. Start both servers first in terminals:
+            //   cd backend  && mvn liberty:dev
+            //   cd frontend && npm start
+            "name": "Debug backend + frontend",
+            "configurations": [
+                "Debug backend (attach to liberty:dev)",
+                "Debug frontend (Chrome)"
+            ],
+            "stopAll": true
         }
     ]
 }
