@@ -67,8 +67,7 @@ odelia-fs-project/
   view with create/delete and a column peek
 - Hands-on exercise: add an inline "rename a board" editor — the backend and the
   `renameBoard(...)` service method already exist, so it is a self-contained
-  first Angular task (`exercises/board-rename.md`, from the `day1` tag). It is
-  the gentle warm-up for the day-2 card editor.
+  first Angular task (`exercises/board-rename.md`, from the `day1` tag).
 - **Goal:** create/list boards and columns from the Angular UI, nothing secured
 
 ### Day 2 — The Kanban UI  ✅ implemented
@@ -82,14 +81,11 @@ odelia-fs-project/
   link to it (the day 1 "column peek" is gone)
 - Frontend: a card shows its description and opens an inline title/description
   editor on click (`PUT /cards/{id}`), and the "add a card" form takes a
-  description too (`POST /lists/{id}/cards`) — also packaged as a hands-on
-  exercise (`exercises/card-description.md`) starting from the `day2` tag; it is
-  the deeper follow-up to the day-1 rename exercise (two fields, plus the
-  drag-vs-click gotcha)
-- Optional activity: generate a typed Angular client from the backend's
+  description too (`POST /lists/{id}/cards`)
+- Hands-on exercise: generate a typed Angular client from the backend's
   MicroProfile OpenAPI document (`/openapi`) and weigh it against the
-  hand-written `BoardService` — `exercises/openapi-client.md`, also from the
-  `day2` tag; fits here because security is still off and `/openapi` is open
+  hand-written `BoardService` — `exercises/openapi-client.md`, from the `day2`
+  tag; fits here because security is still off and `/openapi` is open
 - **Goal:** a working, unsecured single-user Kanban board
 
 ### Day 3 — Token-based security

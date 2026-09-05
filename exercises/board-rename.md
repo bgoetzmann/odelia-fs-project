@@ -24,9 +24,8 @@ renameBoard(id: number, name: string): Observable<Board> {
 
 It is called from nowhere. Your job is to add the UI that uses it.
 
-This is the day-1 warm-up for the day-2 card editor (`exercises/card-description.md`):
-same shape — click, edit in place, Save/Cancel — but one field, one component,
-and no drag-and-drop.
+A small, self-contained first Angular task: click, edit in place, Save/Cancel —
+one field, one component, no drag-and-drop.
 
 ## Goal
 
@@ -42,8 +41,7 @@ text input pre-filled with the current name, plus **Save** and **Cancel**.
 
 ## How to approach this
 
-- **Minimal hints** — work from the **Goal** and **Acceptance criteria**. The
-  day-2 card editor is the same pattern if you want a reference.
+- **Minimal hints** — work from the **Goal** and **Acceptance criteria** alone.
 - **Guided** — follow the numbered **Suggested steps** below.
 
 ## Getting started
@@ -68,13 +66,12 @@ Everything you touch is in `frontend/src/app/boards/`:
 | `board-list.component.css` | style the rename form (optional) |
 | `board-list.component.spec.ts` | **new file** — one test for the save path |
 
-## Why there is no click-collision here
+## Keep the trigger unambiguous
 
-In the day-2 exercise the whole card is clickable, so opening the editor fights
-with drag-and-drop and the delete button. Here you add a **dedicated Rename
-button**, so a click on it is unambiguous — nothing else to guard against. Keep
-it that way: do **not** make the board name itself the trigger (it already
-toggles the column peek).
+Add a **dedicated Rename button** to each row. Do **not** make the board name
+itself the trigger — the name is already a button that toggles the column peek,
+and overloading one click with two actions is the kind of thing that turns a
+10-minute change into an afternoon.
 
 ## Suggested steps
 
@@ -187,8 +184,8 @@ toggles the column peek).
 
 ## Reference solution
 
-None committed — `renameBoard(...)` is in the service but wired to nothing on any
-branch. The closest worked example is the day-2 card editor on `main` (commit
-*"Add card description display and inline editor"*), which is this exact pattern
-with a second field. Background: `frontend/ANGULAR_INTRO.md` §6 (signals) and §7
-(templates: control flow and `[(ngModel)]`).
+None committed — `renameBoard(...)` is in the service but wired to nothing.
+Background reading: `frontend/ANGULAR_INTRO.md` §6 (signals) and §7 (templates:
+control flow and `[(ngModel)]`). The board list's own `createBoard()` is the
+nearest in-repo example of the "call the service, update the signal, re-sort"
+shape.
