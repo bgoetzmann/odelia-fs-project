@@ -13,3 +13,13 @@ export interface BoardList {
   name: string;
   position: number;
 }
+
+/** Mirrors com.odelia.kanban.entity.Card: a card in a column. */
+export interface Card {
+  id?: number;
+  listId: number;
+  title: string;
+  description?: string;
+  position: number;
+  createdAt?: string;
+}

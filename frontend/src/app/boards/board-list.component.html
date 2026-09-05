@@ -23,9 +23,9 @@
       @for (board of boards(); track board.id) {
         <li class="board">
           <div class="board-row">
-            <button class="board-name" type="button" (click)="toggleColumns(board)">
+            <a class="board-name" [routerLink]="['/boards', board.id]">
               {{ board.name }}
-            </button>
+            </a>
             <span class="meta">
               {{ board.owner }}
               @if (board.createdAt) {
@@ -34,16 +34,6 @@
             </span>
             <button class="danger" type="button" (click)="deleteBoard(board)">Delete</button>
           </div>
-
-          @if (selectedBoardId() === board.id) {
-            <div class="columns">
-              @for (column of columns(); track column.id) {
-                <div class="column">{{ column.name }}</div>
-              } @empty {
-                <span class="muted">No column.</span>
-              }
-            </div>
-          }
         </li>
       }
     </ul>

@@ -3,7 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { environment } from '../../environments/environment';
-import { Board, BoardList } from '../models/board';
+import { Board, BoardList, Card } from '../models/board';
 
 /**
  * Single entry point to the Kanban REST API.
@@ -16,6 +16,8 @@ import { Board, BoardList } from '../models/board';
 export class BoardService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = `${environment.apiUrl}/boards`;
+  private readonly listsUrl = `${environment.apiUrl}/lists`;
+  private readonly cardsUrl = `${environment.apiUrl}/cards`;
 
   getBoards(): Observable<Board[]> {
     return this.http.get<Board[]>(this.baseUrl);
@@ -39,5 +41,26 @@ export class BoardService {
 
   getLists(boardId: number): Observable<BoardList[]> {
     return this.http.get<BoardList[]>(`${this.baseUrl}/${boardId}/lists`);
+  }
+
+  getCards(listId: number): Observable<Card[]> {
+    return this.http.get<Card[]>(`${this.listsUrl}/${listId}/cards`);
+  }
+
+  createCard(listId: number, title: string): Observable<Card> {
+    return this.http.post<Card>(`${this.listsUrl}/${listId}/cards`, { title });
+  }
+
+  updateCard(id: number, patch: { title: string; description?: string }): Observable<Card> {
+    return this.http.put<Card>(`${this.cardsUrl}/${id}`, patch);
+  }
+
+  deleteCard(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.cardsUrl}/${id}`);
+  }
+
+  /** Reorder within a column or move to another one; position is the 0-based target index. */
+  moveCard(id: number, targetListId: number, position: number): Observable<Card> {
+    return this.http.patch<Card>(`${this.cardsUrl}/${id}/move`, { targetListId, position });
   }
 }

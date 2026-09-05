@@ -1,0 +1,54 @@
+<section class="board-detail">
+  <a routerLink="/" class="back">← All boards</a>
+
+  @if (board(); as b) {
+    <h2>{{ b.name }}</h2>
+  }
+
+  @if (error()) {
+    <p class="error">{{ error() }}</p>
+  }
+
+  @if (loading()) {
+    <p class="muted">Loading…</p>
+  } @else {
+    <div class="columns" cdkDropListGroup>
+      @for (column of columns(); track column.id) {
+        <section class="column">
+          <header class="column-header">
+            <span class="column-name">{{ column.name }}</span>
+            <span class="count">{{ cardsFor(column.id!).length }}</span>
+          </header>
+
+          <div
+            class="cards"
+            cdkDropList
+            [cdkDropListData]="column"
+            (cdkDropListDropped)="drop($event)">
+            @for (card of cardsFor(column.id!); track card.id) {
+              <article class="card" cdkDrag [cdkDragData]="card">
+                <span class="card-title">{{ card.title }}</span>
+                <button
+                  type="button"
+                  class="remove"
+                  aria-label="Delete card"
+                  (click)="deleteCard(card)">×</button>
+              </article>
+            } @empty {
+              <p class="muted empty">Drop a card here</p>
+            }
+          </div>
+
+          <form class="new-card" (ngSubmit)="addCard(column)">
+            <input
+              [name]="'draft-' + column.id"
+              [(ngModel)]="drafts[column.id!]"
+              placeholder="Add a card…"
+              autocomplete="off"
+              maxlength="200" />
+          </form>
+        </section>
+      }
+    </div>
+  }
+</section>

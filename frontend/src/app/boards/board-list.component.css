@@ -65,34 +65,21 @@ button.danger {
 }
 
 .board-name {
-  background: none;
   color: #0f172a;
   font-size: 1.05rem;
   font-weight: 600;
-  padding: 0;
-  text-align: left;
+  text-decoration: none;
   flex: 1;
+}
+
+.board-name:hover {
+  color: #2563eb;
+  text-decoration: underline;
 }
 
 .meta {
   color: #64748b;
   font-size: 0.85rem;
-}
-
-.columns {
-  display: flex;
-  gap: 0.5rem;
-  margin-top: 0.75rem;
-}
-
-.column {
-  flex: 1;
-  padding: 0.75rem;
-  border-radius: 6px;
-  background: #f1f5f9;
-  color: #334155;
-  text-align: center;
-  font-size: 0.9rem;
 }
 
 .muted {

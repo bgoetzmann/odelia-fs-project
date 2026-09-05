@@ -1,17 +1,18 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 
-import { Board, BoardList } from '../models/board';
+import { Board } from '../models/board';
 import { BoardService } from '../services/board.service';
 
 /**
- * Day 1 view: list the boards, create one, delete one, and peek at the columns
- * a board contains. Day 2 replaces the "peek" with the real drag-and-drop board.
+ * Lists the boards, creates one, deletes one. Each board name links to the
+ * day 2 drag-and-drop board detail view ({@code /boards/:id}).
  */
 @Component({
   selector: 'app-board-list',
-  imports: [FormsModule, DatePipe],
+  imports: [FormsModule, DatePipe, RouterLink],
   templateUrl: './board-list.component.html',
   styleUrl: './board-list.component.css'
 })
@@ -21,9 +22,6 @@ export class BoardListComponent implements OnInit {
   readonly boards = signal<Board[]>([]);
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
-
-  readonly selectedBoardId = signal<number | null>(null);
-  readonly columns = signal<BoardList[]>([]);
 
   newBoardName = '';
 
@@ -64,31 +62,8 @@ export class BoardListComponent implements OnInit {
     }
     this.error.set(null);
     this.boardService.deleteBoard(board.id).subscribe({
-      next: () => {
-        this.boards.update(boards => boards.filter(b => b.id !== board.id));
-        if (this.selectedBoardId() === board.id) {
-          this.selectedBoardId.set(null);
-          this.columns.set([]);
-        }
-      },
+      next: () => this.boards.update(boards => boards.filter(b => b.id !== board.id)),
       error: err => this.fail(`Could not delete the board "${board.name}"`, err)
-    });
-  }
-
-  toggleColumns(board: Board): void {
-    if (board.id === undefined) {
-      return;
-    }
-    if (this.selectedBoardId() === board.id) {
-      this.selectedBoardId.set(null);
-      this.columns.set([]);
-      return;
-    }
-    this.selectedBoardId.set(board.id);
-    this.columns.set([]);
-    this.boardService.getLists(board.id).subscribe({
-      next: columns => this.columns.set(columns),
-      error: err => this.fail(`Could not load the columns of "${board.name}"`, err)
     });
   }
 
