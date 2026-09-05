@@ -76,6 +76,9 @@ odelia-fs-project/
 - Frontend: `@angular/cdk` drag-and-drop (`CdkDropListGroup` / `CdkDropList` /
   `CdkDrag`), `BoardDetailComponent` at `/boards/:id`; the board list's names now
   link to it (the day 1 "column peek" is gone)
+- Frontend: a card shows its description and opens an inline title/description
+  editor on click (`PUT /cards/{id}`) — also packaged as a hands-on exercise
+  (`exercises/card-description.md`) starting from the `day2` tag
 - **Goal:** a working, unsecured single-user Kanban board
 
 ### Day 3 — Token-based security

@@ -26,14 +26,50 @@
             [cdkDropListData]="column"
             (cdkDropListDropped)="drop($event)">
             @for (card of cardsFor(column.id!); track card.id) {
-              <article class="card" cdkDrag [cdkDragData]="card">
-                <span class="card-title">{{ card.title }}</span>
-                <button
-                  type="button"
-                  class="remove"
-                  aria-label="Delete card"
-                  (click)="deleteCard(card)">×</button>
-              </article>
+              @if (editingCardId() === card.id) {
+                <form class="card card-edit" (ngSubmit)="saveEdit(card)">
+                  <input
+                    class="edit-title"
+                    name="edit-title"
+                    [(ngModel)]="editDraft.title"
+                    placeholder="Title"
+                    autocomplete="off"
+                    maxlength="200"
+                    aria-label="Card title" />
+                  <textarea
+                    class="edit-description"
+                    name="edit-description"
+                    [(ngModel)]="editDraft.description"
+                    placeholder="Add a description…"
+                    rows="3"
+                    maxlength="2000"
+                    aria-label="Card description"></textarea>
+                  <div class="edit-actions">
+                    <button type="submit" [disabled]="!editDraft.title.trim()">Save</button>
+                    <button type="button" class="ghost" (click)="cancelEdit()">Cancel</button>
+                  </div>
+                </form>
+              } @else {
+                <article
+                  class="card"
+                  cdkDrag
+                  [cdkDragData]="card"
+                  (cdkDragStarted)="onDragStarted()"
+                  (cdkDragEnded)="onDragEnded()"
+                  (click)="startEdit(card)">
+                  <div class="card-body">
+                    <span class="card-title">{{ card.title }}</span>
+                    @if (card.description) {
+                      <p class="card-description">{{ card.description }}</p>
+                    }
+                  </div>
+                  <button
+                    type="button"
+                    class="remove"
+                    aria-label="Delete card"
+                    (click)="$event.stopPropagation(); deleteCard(card)">×</button>
+                </article>
+              }
             } @empty {
               <p class="muted empty">Drop a card here</p>
             }

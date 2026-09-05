@@ -21,6 +21,10 @@ import { BoardService } from '../services/board.service';
  * Angular CDK {@link CdkDropList}. When a card is dropped, the local arrays are
  * updated for an instant response and {@code PATCH /api/cards/{id}/move} is
  * called to persist the new column and order.
+ *
+ * A card also shows its description under the title, and clicking a card opens
+ * an inline editor for the title and description, persisted with
+ * {@code PUT /api/cards/{id}}.
  */
 @Component({
   selector: 'app-board-detail',
@@ -42,6 +46,14 @@ export class BoardDetailComponent implements OnInit {
   /** One "add a card" draft per column, keyed by column id. */
   readonly drafts: Record<number, string> = {};
 
+  /** Id of the card currently being edited, or null when no editor is open. */
+  readonly editingCardId = signal<number | null>(null);
+  /** Working copy bound to the inline editor while {@link editingCardId} is set. */
+  readonly editDraft = { title: '', description: '' };
+
+  /** True from a drag start until just after it ends, so the trailing click does not open the editor. */
+  private dragging = false;
+
   private boardId = 0;
 
   ngOnInit(): void {
@@ -52,6 +64,7 @@ export class BoardDetailComponent implements OnInit {
   reload(): void {
     this.loading.set(true);
     this.error.set(null);
+    this.editingCardId.set(null);
     this.boardService.getBoard(this.boardId).subscribe({
       next: board => this.board.set(board),
       error: err => this.fail('Could not load the board', err)
@@ -98,6 +111,52 @@ export class BoardDetailComponent implements OnInit {
       }),
       error: err => this.fail(`Could not delete "${card.title}"`, err)
     });
+  }
+
+  /** Opens the inline editor for a card, unless the click is the tail of a drag. */
+  startEdit(card: Card): void {
+    if (this.dragging || card.id === undefined) {
+      return;
+    }
+    this.editingCardId.set(card.id);
+    this.editDraft.title = card.title;
+    this.editDraft.description = card.description ?? '';
+  }
+
+  cancelEdit(): void {
+    this.editingCardId.set(null);
+  }
+
+  /** Persists the edited title/description with {@code PUT /api/cards/{id}}. */
+  saveEdit(card: Card): void {
+    const title = this.editDraft.title.trim();
+    if (!title || card.id === undefined) {
+      return;
+    }
+    const description = this.editDraft.description.trim();
+    this.error.set(null);
+    this.boardService.updateCard(card.id, { title, description: description || undefined }).subscribe({
+      next: updated => {
+        this.mutate(card.listId, cards => {
+          const i = cards.findIndex(c => c.id === card.id);
+          if (i > -1) {
+            cards[i] = updated;
+          }
+        });
+        this.editingCardId.set(null);
+      },
+      error: err => this.fail(`Could not save "${title}"`, err)
+    });
+  }
+
+  onDragStarted(): void {
+    this.dragging = true;
+  }
+
+  onDragEnded(): void {
+    // The synthetic click fires right after mouseup; clear the flag on the next
+    // tick so startEdit() sees it and ignores that one click.
+    setTimeout(() => (this.dragging = false));
   }
 
   drop(event: CdkDragDrop<BoardList>): void {

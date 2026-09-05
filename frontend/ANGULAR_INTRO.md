@@ -364,7 +364,44 @@ so the template re-renders. The CDK's visual feedback (drag preview, drop
 placeholder, slide animation) is styled with the `.cdk-drag-*` classes in
 `board-detail.component.css`.
 
-## 11. Where this goes next
+## 11. Editing a card inline
+
+A card shows its `title` and, underneath, its `description`. Clicking the card
+swaps it for an inline form bound to a small working copy:
+
+```ts
+readonly editingCardId = signal<number | null>(null);
+readonly editDraft = { title: '', description: '' };
+
+startEdit(card: Card): void {
+  if (this.dragging || card.id === undefined) return;   // ignore the click that ends a drag
+  this.editingCardId.set(card.id);
+  this.editDraft.title = card.title;
+  this.editDraft.description = card.description ?? '';
+}
+
+saveEdit(card: Card): void {
+  const title = this.editDraft.title.trim();
+  if (!title || card.id === undefined) return;
+  const description = this.editDraft.description.trim();
+  this.boardService.updateCard(card.id, { title, description: description || undefined })
+    .subscribe({ next: updated => { /* replace the card in cardsByList */ } });
+}
+```
+
+The template picks the form or the card with `@if (editingCardId() === card.id)`.
+Two details worth noting:
+
+- **Drag vs. click.** `cdkDrag` still fires a `click` on the card when a drag
+  ends, so `(cdkDragStarted)` / `(cdkDragEnded)` set a `dragging` flag that
+  `startEdit()` checks (cleared on the next tick, after the stray click).
+- **The delete button** lives inside the clickable card, so its handler calls
+  `$event.stopPropagation()` before `deleteCard(card)` to keep the editor closed.
+
+`updateCard` issues `PUT /api/cards/{id}` with `{ title, description }` — the
+same endpoint from day 2's REST tour, now with a UI behind it.
+
+## 12. Where this goes next
 
 The concepts above — signals for state, a service per resource, `@if`/`@for`
 in templates, one component per route — are the pattern the rest of the app

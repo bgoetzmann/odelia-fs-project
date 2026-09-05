@@ -69,4 +69,34 @@ describe('BoardDetailComponent', () => {
     expect(component.cardsFor(1).length).toBe(0);
     expect(component.cardsFor(2).length).toBe(1);
   });
+
+  it('PUTs the card and updates it in place when the inline editor is saved', () => {
+    const fixture = TestBed.createComponent(BoardDetailComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    http.expectOne('/api/boards/7').flush({ id: 7, name: 'Sprint 1' });
+    http.expectOne('/api/boards/7/lists').flush([
+      { id: 1, boardId: 7, name: 'To do', position: 0 }
+    ]);
+    http.expectOne('/api/lists/1/cards').flush([
+      { id: 10, listId: 1, title: 'Card', position: 0 }
+    ]);
+
+    const card = component.cardsFor(1)[0];
+    component.startEdit(card);
+    expect(component.editingCardId()).toBe(10);
+
+    component.editDraft.title = 'Card renamed';
+    component.editDraft.description = 'Now with details';
+    component.saveEdit(card);
+
+    const put = http.expectOne('/api/cards/10');
+    expect(put.request.method).toBe('PUT');
+    expect(put.request.body).toEqual({ title: 'Card renamed', description: 'Now with details' });
+    put.flush({ id: 10, listId: 1, title: 'Card renamed', description: 'Now with details', position: 0 });
+
+    expect(component.editingCardId()).toBeNull();
+    expect(component.cardsFor(1)[0].description).toBe('Now with details');
+  });
 });
