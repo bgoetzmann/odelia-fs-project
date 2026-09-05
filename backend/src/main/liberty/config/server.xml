@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<server description="Kanban server - Day 1 (no security yet)">
+<server description="Kanban server - Day 2 (Kanban board, no security yet)">
 
     <featureManager>
         <!-- Jakarta EE 11 Web Profile: CDI, JAX-RS, JPA 3.2, JSON-B, Bean Validation,

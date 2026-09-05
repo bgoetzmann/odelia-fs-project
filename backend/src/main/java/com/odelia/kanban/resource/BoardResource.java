@@ -4,6 +4,7 @@ import com.odelia.kanban.entity.Board;
 import com.odelia.kanban.entity.BoardList;
 import com.odelia.kanban.repository.BoardListRepository;
 import com.odelia.kanban.repository.BoardRepository;
+import com.odelia.kanban.repository.CardRepository;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
@@ -50,6 +51,9 @@ public class BoardResource {
 
     @Inject
     BoardListRepository lists;
+
+    @Inject
+    CardRepository cards;
 
     @Context
     UriInfo uriInfo;
@@ -102,6 +106,9 @@ public class BoardResource {
     @Transactional
     public Response deleteBoard(@PathParam("id") long id) {
         Board existing = boards.findById(id).orElseThrow(() -> notFound(id));
+        for (BoardList column : lists.findByBoardIdOrderByPositionAsc(id)) {
+            cards.deleteByListId(column.getId());
+        }
         lists.deleteByBoardId(id);
         boards.delete(existing);
         return Response.noContent().build();
