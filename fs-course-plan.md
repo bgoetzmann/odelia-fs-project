@@ -80,6 +80,10 @@ odelia-fs-project/
   editor on click (`PUT /cards/{id}`), and the "add a card" form takes a
   description too (`POST /lists/{id}/cards`) — also packaged as a hands-on
   exercise (`exercises/card-description.md`) starting from the `day2` tag
+- Optional activity: generate a typed Angular client from the backend's
+  MicroProfile OpenAPI document (`/openapi`) and weigh it against the
+  hand-written `BoardService` — `exercises/openapi-client.md`, also from the
+  `day2` tag; fits here because security is still off and `/openapi` is open
 - **Goal:** a working, unsecured single-user Kanban board
 
 ### Day 3 — Token-based security
