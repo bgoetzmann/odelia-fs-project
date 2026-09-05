@@ -2,7 +2,7 @@
 
 **Track:** Frontend (Angular)
 **Starting point:** the `day2` tag
-**Estimated time:** 45–90 min
+**Estimated time:** 2–3 h (≈1 h if you lean on the reference solution)
 **New backend code:** none — the REST API already supports everything you need
 
 ---
@@ -28,6 +28,19 @@ Your job is to close that gap.
 
 Drag-and-drop, "add a card", and delete must keep working.
 
+## How to approach this
+
+Pick the lane that fits you:
+
+- **Minimal hints** — work from the **Goal** and **Acceptance criteria** alone.
+  Read the "Known gotcha" section below before you start (it will save you an
+  hour), then design the rest yourself.
+- **Guided** — follow the numbered **Suggested steps**. They spell out state,
+  method names, and template structure; you are mostly wiring and testing.
+
+Either way, the "Known gotcha" section is required reading and the acceptance
+criteria are the same.
+
 ## Getting started
 
 ```bash
@@ -44,10 +57,37 @@ Everything you touch is in `frontend/src/app/`:
 |---|---|
 | `services/board.service.ts` | `updateCard(...)` is ready to call; widen `createCard` to take a description |
 | `models/board.ts` | `Card.description?: string` is already declared |
-| `boards/board-detail.component.ts` | editor state + `startEdit` / `cancelEdit` / `saveEdit`; a `{ title, description }` draft for the add form |
+| `boards/board-detail.component.ts` | editor state + `startEdit` / `cancelEdit` / `saveEdit`; the `dragging` guard; a `{ title, description }` draft for the add form |
 | `boards/board-detail.component.html` | description line, the inline form, and the description textarea in the add form |
 | `boards/board-detail.component.css` | style the description and both forms |
 | `boards/board-detail.component.spec.ts` | add tests for the save and create paths |
+
+## Known gotcha — dragging vs. clicking a card
+
+Making the card clickable puts it in conflict with two things that already work.
+This is framework plumbing, not an Angular concept to discover — here is the
+problem and the fix, use it as-is:
+
+- **The delete `×` is inside the card.** A click on it bubbles to the card and
+  would also open the editor. Its handler must call `$event.stopPropagation()`
+  (pass `$event` from the template: `(click)="deleteCard(card, $event)"`).
+
+- **`cdkDrag` fires a synthetic `click` when a drag ends.** So the drop that
+  moves a card would immediately reopen it in the editor. The fix: a private
+  `dragging` flag, set on `(cdkDragStarted)`, and cleared on `(cdkDragEnded)` —
+  but cleared *on the next tick*, because the synthetic click lands right after
+  `cdkDragEnded`:
+
+  ```ts
+  onDragStarted(): void { this.dragging = true; }
+  onDragEnded(): void { setTimeout(() => (this.dragging = false)); }
+  ```
+
+  `startEdit(card)` then returns early while `this.dragging` is true.
+
+If clicking a card "sometimes" opens the editor after a drag, or the delete
+button also opens it, you missed one of these — not something in your editor
+logic.
 
 ## Suggested steps
 
@@ -61,7 +101,8 @@ Everything you touch is in `frontend/src/app/`:
    `editDraft = { title: '', description: '' }` working copy. Do **not** bind the
    form straight to the card object — you want Cancel to be free.
 
-3. **`startEdit(card)`** — set `editingCardId` to `card.id` and copy
+3. **`startEdit(card)`** — return early if the `dragging` flag is set (see
+   "Known gotcha"), otherwise set `editingCardId` to `card.id` and copy
    `title` / `description ?? ''` into `editDraft`.
 
 4. **Swap card ↔ form in the template.**
@@ -69,20 +110,18 @@ Everything you touch is in `frontend/src/app/`:
    Bind the input and textarea with `[(ngModel)]` (the component already imports
    `FormsModule`). Give the controls a `name`.
 
-5. **`saveEdit(card)`** — trim the title, bail if empty, then
+5. **`saveEdit(card)`** — trim the title; bail if it is empty (defensive — the
+   button is also disabled, see below). Then call
    `boardService.updateCard(card.id, { title, description: description || undefined })`.
    On success, replace the card inside `cardsByList` (see the existing `mutate`
-   helper) and clear `editingCardId`.
+   helper) and clear `editingCardId`. In the template, disable Save while the
+   trimmed title is blank: `[disabled]="!editDraft.title.trim()"`.
 
 6. **`cancelEdit()`** — just `editingCardId.set(null)`.
 
-7. **Two collisions to handle:**
-   - The delete `×` button is inside the now-clickable card. Its handler must
-     call `$event.stopPropagation()` so it doesn't also open the editor.
-   - `cdkDrag` fires a `click` on the card when a drag ends. Add
-     `(cdkDragStarted)` / `(cdkDragEnded)` handlers that raise a `dragging` flag,
-     have `startEdit` return early when it's set, and clear it on the next tick
-     (`setTimeout(() => this.dragging = false)`).
+7. **Wire up the two click guards** from the "Known gotcha" section: pass
+   `$event` to `deleteCard` and call `$event.stopPropagation()` there, and add
+   the `(cdkDragStarted)` / `(cdkDragEnded)` handlers with the `dragging` flag.
 
 8. **Add form.** Turn each column's draft into a `{ title, description }` object
    (a `draftFor(columnId)` helper that lazily creates it keeps the template
@@ -90,12 +129,31 @@ Everything you touch is in `frontend/src/app/`:
    `description || undefined` as a new third argument to `createCard`. Clear both
    fields on success.
 
-9. **Test it.** In `board-detail.component.spec.ts`, drive
-   `component.startEdit(card)` → set `editDraft` → `component.saveEdit(card)`,
-   then assert `http.expectOne('/api/cards/10')` is a `PUT` with the right body,
-   flush a response, and check the card was updated and `editingCardId()` is
-   `null`. Add a second test that sets `draftFor(1)` and calls `addCard(column)`,
-   asserting the `POST` body carries both `title` and `description`.
+9. **Test it.** `board-detail.component.spec.ts` already shows the pattern:
+   `fixture.detectChanges()` triggers `ngOnInit`, then you `flush` the board,
+   lists and cards requests in order (`afterEach(() => http.verify())` fails the
+   test on any request you don't consume). Add two tests:
+
+   - **Save path** — after the load sequence, grab `component.cardsFor(1)[0]`,
+     call `component.startEdit(card)`, set `component.editDraft.title` /
+     `.description`, call `component.saveEdit(card)`. Then:
+
+     ```ts
+     const put = http.expectOne('/api/cards/10');
+     expect(put.request.method).toBe('PUT');
+     expect(put.request.body).toEqual({ title: 'New title', description: 'Notes' });
+     put.flush({ id: 10, listId: 1, title: 'New title', description: 'Notes', position: 0 });
+
+     expect(component.cardsFor(1)[0].title).toBe('New title');
+     expect(component.editingCardId()).toBeNull();
+     ```
+
+   - **Create path** — after the load sequence, set
+     `component.draftFor(1).title` / `.description`, call
+     `component.addCard(column)` (pass the column object, e.g.
+     `{ id: 1, boardId: 7, name: 'To do', position: 0 }`), then
+     `http.expectOne('/api/lists/1/cards')`, assert it is a `POST` whose body
+     carries both `title` and `description`, and `flush` a card back.
 
 ## Acceptance criteria
 
@@ -103,7 +161,7 @@ Everything you touch is in `frontend/src/app/`:
 - [ ] A card with no description renders no empty element.
 - [ ] Clicking a card opens the inline editor pre-filled with its current values.
 - [ ] Save issues exactly one `PUT /api/cards/{id}` and the card updates without a reload.
-- [ ] Save is disabled / rejected when the title is blank.
+- [ ] The Save button is disabled while the title is blank (and `saveEdit` bails if called anyway).
 - [ ] Cancel discards changes and closes the editor.
 - [ ] Dragging a card does **not** open the editor; deleting a card does **not** open it.
 - [ ] The "add a card" form has a description field; creating with it set stores the description, and both fields reset afterwards.
