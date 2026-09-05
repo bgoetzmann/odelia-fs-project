@@ -105,6 +105,7 @@ h2 {
 .card-edit .edit-title,
 .card-edit .edit-description {
   width: 100%;
+  min-width: 0;
   padding: 0.4rem 0.5rem;
   border: 1px solid #cbd5e1;
   border-radius: 6px;
@@ -169,6 +170,7 @@ h2 {
 .new-card input,
 .new-card textarea {
   width: 100%;
+  min-width: 0;
   padding: 0.5rem 0.6rem;
   border: 1px solid #cbd5e1;
   border-radius: 6px;
