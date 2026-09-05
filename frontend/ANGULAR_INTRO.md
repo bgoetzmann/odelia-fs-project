@@ -16,7 +16,7 @@ TypeScript. Out of the box you get:
 - **`HttpClient`** — typed HTTP calls, returning RxJS `Observable`s
 - **Signals** — a reactive primitive for state that Angular can track efficiently
 
-The Kanban frontend is small — one route, one real feature component, one
+The Kanban frontend is small — two routes, a handful of feature components, one
 service — but it touches every one of these.
 
 ## 2. Bootstrapping: `main.ts` + `app.config.ts`
@@ -97,14 +97,18 @@ being declared once in a shared module. It's the default in current Angular.
 // frontend/src/app/app.routes.ts
 export const routes: Routes = [
   { path: '', component: BoardListComponent },
+  { path: 'boards/:id', component: BoardDetailComponent },
   { path: '**', redirectTo: '' }
 ];
 ```
 
-Right now there's a single real route: `/` renders `BoardListComponent`. Any
-unmatched path (`**`) redirects back to it. `<router-outlet />` in
-`app.component.html` is where that component actually gets inserted into the
-page. Day 2 of the course plan adds a board *detail* route alongside this one.
+Two real routes: `/` renders `BoardListComponent`, and `/boards/:id` renders
+`BoardDetailComponent` — the `:id` segment is a route parameter the component
+reads with `ActivatedRoute` (`this.route.snapshot.paramMap.get('id')`). Any
+unmatched path (`**`) redirects back to the list. `<router-outlet />` in
+`app.component.html` is where the matched component gets inserted into the page,
+and `[routerLink]="['/boards', board.id]"` in the board list is what navigates
+there without a full page reload.
 
 ## 5. Services and dependency injection
 
@@ -307,14 +311,65 @@ one `interface` per entity, and update it by hand when the backend DTO
 changes. `HttpClient`'s generics (`this.http.get<Board[]>(...)`) then give you
 compile-time checked, autocompleted JSON responses.
 
-## 10. Where this goes next
+## 10. Drag and drop with the Angular CDK
 
-Per `fs-course-plan.md`, day 2 adds a `Card` entity and the Angular CDK's
-`DragDropModule` for drag-and-drop between columns, plus a board detail route.
+Day 2's board detail view uses the [Angular CDK](https://material.angular.io/cdk/drag-drop/overview)
+(`@angular/cdk`) — a dependency-free toolbox of behaviours. `BoardDetailComponent`
+imports three standalone directives:
+
+```ts
+// frontend/src/app/boards/board-detail.component.ts
+import {
+  CdkDrag, CdkDropList, CdkDropListGroup,
+  moveItemInArray, transferArrayItem
+} from '@angular/cdk/drag-drop';
+
+@Component({
+  imports: [FormsModule, RouterLink, CdkDropListGroup, CdkDropList, CdkDrag],
+  ...
+})
+```
+
+- `cdkDropListGroup` wraps the row of columns so every list accepts drags from
+  the others.
+- each column is a `cdkDropList` carrying `[cdkDropListData]="column"` and a
+  `(cdkDropListDropped)="drop($event)"` handler.
+- each card is a `cdkDrag` carrying `[cdkDragData]="card"`.
+
+The `drop` handler mutates the local arrays for an instant response, then calls
+the backend to persist the change:
+
+```ts
+drop(event: CdkDragDrop<BoardList>): void {
+  const card = event.item.data as Card;
+  const targetId = event.container.data.id!;
+  if (event.previousContainer === event.container) {
+    moveItemInArray(this.cardsFor(targetId), event.previousIndex, event.currentIndex);
+  } else {
+    transferArrayItem(
+      this.cardsFor(event.previousContainer.data.id!), this.cardsFor(targetId),
+      event.previousIndex, event.currentIndex);
+    card.listId = targetId;
+  }
+  this.boardService.moveCard(card.id!, targetId, event.currentIndex).subscribe({
+    error: () => this.reload()   // snap back to the server's truth on failure
+  });
+}
+```
+
+`moveItemInArray` / `transferArrayItem` are plain array helpers the CDK ships;
+they don't know about Angular. Because they mutate the arrays in place, the
+component re-emits its `cardsByList` signal (`this.cardsByList.set({ ...this.cardsByList() })`)
+so the template re-renders. The CDK's visual feedback (drag preview, drop
+placeholder, slide animation) is styled with the `.cdk-drag-*` classes in
+`board-detail.component.css`.
+
+## 11. Where this goes next
+
 The concepts above — signals for state, a service per resource, `@if`/`@for`
-in templates — are the pattern that the rest of the app builds on; day 2 and
-beyond mostly add more of the same shapes rather than new ones, until day 3
-introduces route guards and an HTTP interceptor for the Keycloak JWT.
+in templates, one component per route — are the pattern the rest of the app
+builds on. Day 3 introduces genuinely new pieces: route guards and an HTTP
+interceptor that attaches the Keycloak JWT to every request.
 
 ## Further reading
 

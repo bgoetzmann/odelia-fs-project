@@ -27,9 +27,9 @@ odelia-fs-project/
 ├── .devcontainer/                # Dev Container: Java 21 + Maven + Node 22, extends docker-compose.yml
 ├── backend/                      # OpenLiberty + Jakarta EE 11 + Jakarta Data 1.0 + MicroProfile 7.1
 │   ├── src/main/java/com/odelia/kanban/
-│   │   ├── resource/             # JAX-RS: BoardResource, BoardListResource, CardResource (day 2)
-│   │   ├── repository/           # Jakarta Data: BoardRepository, BoardListRepository (interfaces only)
-│   │   ├── entity/               # Board, BoardList, Card (day 2), BoardMember (day 4)
+│   │   ├── resource/             # JAX-RS: BoardResource, BoardListResource, CardResource
+│   │   ├── repository/           # Jakarta Data: BoardRepository, BoardListRepository, CardRepository (interfaces only)
+│   │   ├── entity/               # Board, BoardList, Card, BoardMember (day 4)
 │   │   ├── health/               # MicroProfile Health: DatabaseReadinessCheck
 │   │   └── security/             # JWT role checks (day 3)
 │   ├── src/main/resources/META-INF/microprofile-config.properties
@@ -67,11 +67,15 @@ odelia-fs-project/
   view with create/delete and a column peek
 - **Goal:** create/list boards and columns from the Angular UI, nothing secured
 
-### Day 2 — The Kanban UI
-- Backend: `Card` entity, endpoints for moving cards between lists
-  (`PATCH /cards/{id}/move`), ordering/position logic
-- Frontend: Angular CDK `DragDropModule` for drag-and-drop cards between columns,
-  board detail view
+### Day 2 — The Kanban UI  ✅ implemented
+- Backend: `Card` entity + `CardRepository`, `GET/POST /lists/{id}/cards`,
+  `GET/PUT/DELETE /cards/{id}`, and `PATCH /cards/{id}/move` with a `MoveCommand`
+  record `{ targetListId, position }`; the resource renumbers the affected
+  column(s) so positions stay contiguous, and card/column deletes cascade in the
+  resource layer
+- Frontend: `@angular/cdk` drag-and-drop (`CdkDropListGroup` / `CdkDropList` /
+  `CdkDrag`), `BoardDetailComponent` at `/boards/:id`; the board list's names now
+  link to it (the day 1 "column peek" is gone)
 - **Goal:** a working, unsecured single-user Kanban board
 
 ### Day 3 — Token-based security
@@ -184,7 +188,9 @@ Notes:
   MicroProfile JWT is introduced on day 3, not as a day 1 starter.
 - **Open:** draft `keycloak/kanban-realm.json` (realm, `kanban-app` client,
   `user` / `admin` roles, test users) — the `keycloak/` directory is still empty.
-- **Open:** day 2 `Card` entity + `PATCH /cards/{id}/move` and the Angular CDK
-  drag-and-drop board detail view.
+- **Done:** day 2 `Card` entity + `PATCH /cards/{id}/move` and the Angular CDK
+  drag-and-drop board detail view. Milestones are marked with annotated git tags
+  (`day1`, `day2`, ...) on `main`; while the course is still being authored the
+  tags may be force-moved when an earlier day is fixed.
 - **Open:** decide whether live updates (Jakarta WebSocket) make the day 4
   stretch goal or get cut.

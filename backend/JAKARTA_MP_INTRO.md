@@ -233,9 +233,44 @@ private WebApplicationException notFound(long id) {
 ```
 
 `BoardListResource` (`/api/lists/{id}`) is the same pattern for one column at
-a time — get/update/delete — while `BoardResource` also owns the *nested*
-collection endpoints, `GET/POST /api/boards/{id}/lists`, since a column
-always belongs to a board.
+a time — get/update/delete, plus the nested `GET/POST /api/lists/{id}/cards` —
+while `BoardResource` also owns `GET/POST /api/boards/{id}/lists`, since a
+column always belongs to a board.
+
+### 4a. `PATCH` and a record as the request body: the card move endpoint
+
+Day 2's `CardResource` adds one endpoint that isn't plain CRUD —
+`PATCH /api/cards/{id}/move`, called by the drag-and-drop UI every time a card
+is dropped. `@PATCH` (`jakarta.ws.rs.PATCH`) has been a standard annotation
+since Jakarta REST 3.1, alongside `@GET`/`@POST`/`@PUT`/`@DELETE`.
+
+The request body is a **Java record**, not an entity:
+
+```java
+// backend/src/main/java/com/odelia/kanban/resource/MoveCommand.java
+public record MoveCommand(long targetListId, @PositiveOrZero int position) {
+}
+```
+
+JSON-B deserializes `{"targetListId": 2, "position": 0}` straight into the
+record's canonical constructor, and `@Valid` on the parameter still runs the
+Bean Validation constraints (`@PositiveOrZero`). A small immutable record is
+the natural shape for a command that isn't a persisted resource:
+
+```java
+@PATCH
+@Path("/{id}/move")
+@Transactional
+public Card move(@PathParam("id") long id, @Valid MoveCommand command) {
+    // move the card to command.targetListId() at command.position(),
+    // then renumber the affected column(s) so positions stay 0,1,2,...
+}
+```
+
+Keeping `position` contiguous is the resource's job, not the database's —
+there's no `ON DELETE CASCADE` or trigger; `deleteCard`, `deleteColumn` and
+`deleteBoard` each clean up their children explicitly in Java, inside the same
+`@Transactional` method.
 
 ## 5. Wiring JAX-RS into the app
 
@@ -404,14 +439,13 @@ Three things worth noticing:
 
 ## 10. Where this goes next
 
-Per `fs-course-plan.md`, day 2 adds a `Card` entity and move/reorder
-endpoints; day 3 brings Keycloak into the loop and secures endpoints with
-`@RolesAllowed` backed by MicroProfile JWT — at that point
-`kanban.default.owner` (§7) stops being used, replaced by the authenticated
-subject from the token, and the `<mpMetrics>`/CORS/`server.xml` config above
-gets tightened accordingly. The shapes introduced here — entity + repository
-+ resource, one triplet per concept — are the pattern the rest of the backend
-builds on.
+Day 2 (above) added the `Card` triplet and the `/move` endpoint. Day 3 brings
+Keycloak into the loop and secures endpoints with `@RolesAllowed` backed by
+MicroProfile JWT — at that point `kanban.default.owner` (§7) stops being used,
+replaced by the authenticated subject from the token, and the
+`<mpMetrics>`/CORS/`server.xml` config above gets tightened accordingly. The
+shapes introduced here — entity + repository + resource, one triplet per
+concept — are the pattern the rest of the backend builds on.
 
 ## Further reading
 
