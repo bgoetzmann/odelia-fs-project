@@ -47,8 +47,8 @@ export class BoardService {
     return this.http.get<Card[]>(`${this.listsUrl}/${listId}/cards`);
   }
 
-  createCard(listId: number, title: string): Observable<Card> {
-    return this.http.post<Card>(`${this.listsUrl}/${listId}/cards`, { title });
+  createCard(listId: number, title: string, description?: string): Observable<Card> {
+    return this.http.post<Card>(`${this.listsUrl}/${listId}/cards`, { title, description });
   }
 
   updateCard(id: number, patch: { title: string; description?: string }): Observable<Card> {

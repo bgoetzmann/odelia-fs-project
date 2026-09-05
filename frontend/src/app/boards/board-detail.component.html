@@ -77,11 +77,18 @@
 
           <form class="new-card" (ngSubmit)="addCard(column)">
             <input
-              [name]="'draft-' + column.id"
-              [(ngModel)]="drafts[column.id!]"
+              [name]="'draft-title-' + column.id"
+              [(ngModel)]="draftFor(column.id!).title"
               placeholder="Add a card…"
               autocomplete="off"
               maxlength="200" />
+            <textarea
+              [name]="'draft-description-' + column.id"
+              [(ngModel)]="draftFor(column.id!).description"
+              placeholder="Description (optional)"
+              rows="2"
+              maxlength="2000"></textarea>
+            <button type="submit" [disabled]="!draftFor(column.id!).title.trim()">Add card</button>
           </form>
         </section>
       }

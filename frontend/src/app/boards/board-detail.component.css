@@ -160,12 +160,39 @@ h2 {
   padding: 0.5rem 0;
 }
 
-.new-card input {
+.new-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.new-card input,
+.new-card textarea {
   width: 100%;
   padding: 0.5rem 0.6rem;
   border: 1px solid #cbd5e1;
   border-radius: 6px;
   font: inherit;
+}
+
+.new-card textarea {
+  resize: vertical;
+}
+
+.new-card button {
+  align-self: flex-start;
+  padding: 0.35rem 0.8rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  background: #2563eb;
+  color: #fff;
+  font: inherit;
+  cursor: pointer;
+}
+
+.new-card button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .muted {

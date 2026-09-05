@@ -43,8 +43,8 @@ export class BoardDetailComponent implements OnInit {
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
 
-  /** One "add a card" draft per column, keyed by column id. */
-  readonly drafts: Record<number, string> = {};
+  /** One "add a card" draft (title + description) per column, keyed by column id. */
+  readonly drafts: Record<number, { title: string; description: string }> = {};
 
   /** Id of the card currently being edited, or null when no editor is open. */
   readonly editingCardId = signal<number | null>(null);
@@ -82,16 +82,27 @@ export class BoardDetailComponent implements OnInit {
     return this.cardsByList()[listId] ?? [];
   }
 
+  /** The "add a card" draft for a column, created on first access. */
+  draftFor(columnId: number): { title: string; description: string } {
+    return (this.drafts[columnId] ??= { title: '', description: '' });
+  }
+
   addCard(column: BoardList): void {
-    const title = (this.drafts[column.id!] ?? '').trim();
-    if (!title || column.id === undefined) {
+    if (column.id === undefined) {
       return;
     }
+    const draft = this.draftFor(column.id);
+    const title = draft.title.trim();
+    if (!title) {
+      return;
+    }
+    const description = draft.description.trim();
     this.error.set(null);
-    this.boardService.createCard(column.id, title).subscribe({
+    this.boardService.createCard(column.id, title, description || undefined).subscribe({
       next: card => {
         this.mutate(column.id!, cards => cards.push(card));
-        this.drafts[column.id!] = '';
+        draft.title = '';
+        draft.description = '';
       },
       error: err => this.fail(`Could not add "${title}"`, err)
     });

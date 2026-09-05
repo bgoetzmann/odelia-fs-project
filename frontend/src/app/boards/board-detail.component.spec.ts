@@ -99,4 +99,31 @@ describe('BoardDetailComponent', () => {
     expect(component.editingCardId()).toBeNull();
     expect(component.cardsFor(1)[0].description).toBe('Now with details');
   });
+
+  it('POSTs title and description from the "add a card" form', () => {
+    const fixture = TestBed.createComponent(BoardDetailComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    http.expectOne('/api/boards/7').flush({ id: 7, name: 'Sprint 1' });
+    http.expectOne('/api/boards/7/lists').flush([
+      { id: 1, boardId: 7, name: 'To do', position: 0 }
+    ]);
+    http.expectOne('/api/lists/1/cards').flush([]);
+
+    const column = component.columns()[0];
+    const draft = component.draftFor(1);
+    draft.title = 'New card';
+    draft.description = 'With a description';
+    component.addCard(column);
+
+    const post = http.expectOne('/api/lists/1/cards');
+    expect(post.request.method).toBe('POST');
+    expect(post.request.body).toEqual({ title: 'New card', description: 'With a description' });
+    post.flush({ id: 20, listId: 1, title: 'New card', description: 'With a description', position: 0 });
+
+    expect(component.cardsFor(1).length).toBe(1);
+    expect(draft.title).toBe('');
+    expect(draft.description).toBe('');
+  });
 });

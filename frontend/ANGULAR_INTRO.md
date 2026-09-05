@@ -401,6 +401,12 @@ Two details worth noting:
 `updateCard` issues `PUT /api/cards/{id}` with `{ title, description }` — the
 same endpoint from day 2's REST tour, now with a UI behind it.
 
+The "add a card" form carries a description textarea as well, so
+`createCard(listId, title, description?)` posts both fields to
+`POST /api/lists/{id}/cards`. Each column's draft is a small
+`{ title, description }` object in the `drafts` record, created on demand by
+`draftFor(columnId)`.
+
 ## 12. Where this goes next
 
 The concepts above — signals for state, a service per resource, `@if`/`@for`

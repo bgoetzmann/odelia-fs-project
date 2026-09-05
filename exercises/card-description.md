@@ -23,6 +23,8 @@ Your job is to close that gap.
 2. **Edit** — clicking a card turns it into an inline form with a title input and
    a description textarea, plus **Save** and **Cancel**. Saving calls
    `PUT /api/cards/{id}` and updates the card in place; no full reload.
+3. **Create** — the "add a card" form gets a description textarea too, so a card
+   can be created with a description in one step (`POST /api/lists/{id}/cards`).
 
 Drag-and-drop, "add a card", and delete must keep working.
 
@@ -40,12 +42,12 @@ Everything you touch is in `frontend/src/app/`:
 
 | File | What changes |
 |---|---|
-| `services/board.service.ts` | already has `updateCard(id, { title, description? })` — just call it |
+| `services/board.service.ts` | `updateCard(...)` is ready to call; widen `createCard` to take a description |
 | `models/board.ts` | `Card.description?: string` is already declared |
-| `boards/board-detail.component.ts` | editor state + `startEdit` / `cancelEdit` / `saveEdit` |
-| `boards/board-detail.component.html` | description line + the inline form |
-| `boards/board-detail.component.css` | style the description and the form |
-| `boards/board-detail.component.spec.ts` | add a test for the save path |
+| `boards/board-detail.component.ts` | editor state + `startEdit` / `cancelEdit` / `saveEdit`; a `{ title, description }` draft for the add form |
+| `boards/board-detail.component.html` | description line, the inline form, and the description textarea in the add form |
+| `boards/board-detail.component.css` | style the description and both forms |
+| `boards/board-detail.component.spec.ts` | add tests for the save and create paths |
 
 ## Suggested steps
 
@@ -82,11 +84,18 @@ Everything you touch is in `frontend/src/app/`:
      have `startEdit` return early when it's set, and clear it on the next tick
      (`setTimeout(() => this.dragging = false)`).
 
-8. **Test it.** In `board-detail.component.spec.ts`, drive
+8. **Add form.** Turn each column's draft into a `{ title, description }` object
+   (a `draftFor(columnId)` helper that lazily creates it keeps the template
+   tidy), add a `<textarea>` bound to `draftFor(column.id!).description`, and pass
+   `description || undefined` as a new third argument to `createCard`. Clear both
+   fields on success.
+
+9. **Test it.** In `board-detail.component.spec.ts`, drive
    `component.startEdit(card)` → set `editDraft` → `component.saveEdit(card)`,
    then assert `http.expectOne('/api/cards/10')` is a `PUT` with the right body,
    flush a response, and check the card was updated and `editingCardId()` is
-   `null`.
+   `null`. Add a second test that sets `draftFor(1)` and calls `addCard(column)`,
+   asserting the `POST` body carries both `title` and `description`.
 
 ## Acceptance criteria
 
@@ -97,18 +106,17 @@ Everything you touch is in `frontend/src/app/`:
 - [ ] Save is disabled / rejected when the title is blank.
 - [ ] Cancel discards changes and closes the editor.
 - [ ] Dragging a card does **not** open the editor; deleting a card does **not** open it.
+- [ ] The "add a card" form has a description field; creating with it set stores the description, and both fields reset afterwards.
 - [ ] `npm test` and `npm run build` (`ng build`) both pass.
 
 ## Stretch goals
 
 - Close the editor on `Escape`, save on `Ctrl/Cmd+Enter`.
 - Show a description on the drag preview.
-- Add a description textarea to the "add a card" form (the create endpoint,
-  `POST /api/lists/{id}/cards`, already accepts it via `@Valid Card`).
 - Render the description as Markdown (watch out for XSS — use a sanitizer).
 
 ## Reference solution
 
-A worked implementation is on `main` (commit *"Add card description display and
-inline editor"*) and is described in
-`frontend/ANGULAR_INTRO.md` §11. Try the exercise before reading it.
+A worked implementation is on `main` (commits *"Add card description display and
+inline editor"* and *"Add a description field to the add-a-card form"*) and is
+described in `frontend/ANGULAR_INTRO.md` §11. Try the exercise before reading it.
