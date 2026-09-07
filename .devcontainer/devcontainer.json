@@ -9,9 +9,9 @@
   "service": "dev",
   "workspaceFolder": "/workspace/odelia-fs-project",
 
-  // Day 1: only the database comes up with the dev container.
-  // Add "keycloak" here on day 3.
-  "runServices": ["postgres"],
+  // Day 3: the database and Keycloak come up with the dev container; the
+  // backend and the frontend are still run by hand (mvn liberty:dev / npm start).
+  "runServices": ["postgres", "keycloak"],
 
   "features": {
     "ghcr.io/devcontainers/features/java:1.8.3": {
@@ -26,12 +26,14 @@
     "ghcr.io/anthropics/devcontainer-features/claude-code:1.0": {}
   },
 
-  // 9080 = Liberty (mvn liberty:dev), 4200 = ng serve, 5432 = PostgreSQL
-  "forwardPorts": [9080, 4200, 5432],
+  // 9080 = Liberty (mvn liberty:dev), 4200 = ng serve, 5432 = PostgreSQL,
+  // 8081 = Keycloak (the browser is redirected there, so it must be forwarded)
+  "forwardPorts": [9080, 4200, 5432, 8081],
   "portsAttributes": {
     "9080": { "label": "backend (Liberty)" },
     "4200": { "label": "frontend (Angular)" },
-    "5432": { "label": "postgres" }
+    "5432": { "label": "postgres" },
+    "8081": { "label": "keycloak" }
   },
 
   // mvn liberty:dev reads DB_HOST (see backend/.../server.xml); inside the

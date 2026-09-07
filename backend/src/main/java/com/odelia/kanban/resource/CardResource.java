@@ -1,8 +1,12 @@
 package com.odelia.kanban.resource;
 
+import com.odelia.kanban.entity.BoardList;
 import com.odelia.kanban.entity.Card;
 import com.odelia.kanban.repository.BoardListRepository;
 import com.odelia.kanban.repository.CardRepository;
+import com.odelia.kanban.security.BoardAccess;
+import com.odelia.kanban.security.CurrentUser;
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -29,12 +33,21 @@ import java.util.List;
  * <p>The interesting endpoint is {@code PATCH /api/cards/{id}/move}, which the
  * Angular CDK drag-and-drop board calls whenever a card is dropped - either
  * reordered inside its column or moved to another one.</p>
+ *
+ * <p>Like columns, a card inherits its owner from the board it ultimately
+ * belongs to, so every endpoint goes through {@link BoardAccess}. {@code /move}
+ * checks both ends: you cannot drop one of your cards onto someone else's
+ * board.</p>
  */
 @Path("/cards")
 @RequestScoped
+@RolesAllowed({ CurrentUser.USER, CurrentUser.ADMIN })
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class CardResource {
+
+    @Inject
+    BoardAccess access;
 
     @Inject
     CardRepository cards;
@@ -45,7 +58,7 @@ public class CardResource {
     @GET
     @Path("/{id}")
     public Card getCard(@PathParam("id") long id) {
-        return cards.findById(id).orElseThrow(() -> notFound(id));
+        return accessibleCard(id);
     }
 
     /** Edits the title/description of a card; use {@code /move} to change its column or order. */
@@ -53,7 +66,7 @@ public class CardResource {
     @Path("/{id}")
     @Transactional
     public Card updateCard(@PathParam("id") long id, @Valid Card card) {
-        Card existing = cards.findById(id).orElseThrow(() -> notFound(id));
+        Card existing = accessibleCard(id);
         existing.setTitle(card.getTitle());
         existing.setDescription(card.getDescription());
         return cards.save(existing);
@@ -63,7 +76,7 @@ public class CardResource {
     @Path("/{id}")
     @Transactional
     public Response deleteCard(@PathParam("id") long id) {
-        Card existing = cards.findById(id).orElseThrow(() -> notFound(id));
+        Card existing = accessibleCard(id);
         cards.delete(existing);
         // Close the gap the card leaves behind so positions stay contiguous.
         renumber(remaining(existing.getListId(), existing.getId()));
@@ -78,13 +91,13 @@ public class CardResource {
     @Path("/{id}/move")
     @Transactional
     public Card move(@PathParam("id") long id, @Valid MoveCommand command) {
-        Card card = cards.findById(id).orElseThrow(() -> notFound(id));
+        Card card = accessibleCard(id);
 
         long sourceListId = card.getListId();
         long targetListId = command.targetListId();
-        if (lists.findById(targetListId).isEmpty()) {
-            throw new WebApplicationException("No list with id " + targetListId, Response.Status.NOT_FOUND);
-        }
+        BoardList targetColumn = lists.findById(targetListId).orElseThrow(
+                () -> new WebApplicationException("No list with id " + targetListId, Response.Status.NOT_FOUND));
+        access.requireColumnAccess(targetColumn);
 
         List<Card> target = remaining(targetListId, id);
         int index = Math.max(0, Math.min(command.position(), target.size()));
@@ -99,6 +112,13 @@ public class CardResource {
             renumber(remaining(sourceListId, id));
         }
         return moved;
+    }
+
+    /** Loads a card on a board the caller owns: 404 if it is gone, 403 if the board is not theirs. */
+    private Card accessibleCard(long id) {
+        Card card = cards.findById(id).orElseThrow(() -> notFound(id));
+        access.requireCardAccess(card);
+        return card;
     }
 
     /** Cards of a column, ordered by position, with the given card id removed. */

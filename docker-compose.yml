@@ -16,8 +16,9 @@ services:
       timeout: 5s
       retries: 10
 
-  # Day 1: the container is here but nothing talks to it yet. It is wired in
-  # on day 3, together with keycloak/kanban-realm.json.
+  # Imports every file under the mounted data/import directory at startup, so
+  # keycloak/kanban-realm.json becomes the "kanban" realm (day 3). The admin
+  # console is on http://localhost:8081 with admin/admin.
   keycloak:
     image: quay.io/keycloak/keycloak:26.0
     container_name: kanban-keycloak
@@ -36,12 +37,19 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      # Only "started": the backend fetches Keycloak's public keys lazily, the
+      # first time a token turns up, so it does not have to wait for the realm.
+      keycloak:
+        condition: service_started
     environment:
       DB_HOST: postgres
       DB_PORT: 5432
       DB_NAME: kanban
       DB_USER: kanban
       DB_PASSWORD: kanban
+      # The mp.jwt.* defaults in microprofile-config.properties already point at
+      # http://keycloak:8080 (this network) and expect tokens issued to the
+      # browser by http://localhost:8081; override them here if that changes.
     ports:
       - "9080:9080"
       - "9443:9443"

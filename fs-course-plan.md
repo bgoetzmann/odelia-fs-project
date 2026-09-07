@@ -88,22 +88,35 @@ odelia-fs-project/
   tag; fits here because security is still off and `/openapi` is open
 - **Goal:** a working, unsecured single-user Kanban board
 
-### Day 3 — Token-based security
-- Bring Keycloak into the loop: import the pre-built realm (`kanban` realm,
-  `kanban-app` client, `user`/`admin` roles, a couple of test users)
-- Backend: secure endpoints with MicroProfile JWT (`@RolesAllowed`),
-  `mp.jwt.verify.publickey.location` pointing at Keycloak's JWKS endpoint, extract
-  user identity from the JWT (`@Inject JsonWebToken`) to tag `Board.owner`
-- Frontend: integrate `keycloak-js`, login redirect flow, attach
-  `Authorization: Bearer <token>` to all HTTP calls via an Angular
-  `HttpInterceptor`, guard routes on auth state
+### Day 3 — Token-based security  ✅ implemented
+- Keycloak in the loop: `keycloak/kanban-realm.json` is imported at container
+  startup (`kanban` realm, public `kanban-app` client with PKCE, `user`/`admin`
+  realm roles, three test users — `alice`, `bob`, `carol` the admin). Two
+  protocol mappers do the real work: realm roles → the `groups` claim that
+  MicroProfile JWT reads, and an audience mapper adding `kanban-app` to `aud`
+- Backend: `@LoginConfig(authMethod = "MP-JWT")` on `KanbanApplication`,
+  `mp.jwt.verify.publickey.location` / `.issuer` / `.audiences` in
+  `microprofile-config.properties` (no Liberty-specific `<mpJwt>` element),
+  `@RolesAllowed` on all three resources. New `security/` package:
+  `CurrentUser` (`@Inject JsonWebToken` → `preferred_username`, `isAdmin()`) and
+  `BoardAccess`, which walks card → column → board so a column or card is only
+  reachable by the board's owner. `Board.owner` is set from the token and
+  `GET /boards` is filtered by it (admins see everything)
+- Frontend: `src/app/auth/` — `AuthService` (keycloak-js, `check-sso`, signals),
+  `authInterceptor` (adds `Authorization: Bearer`, refreshes an expiring token,
+  and never sends it off-origin), `authGuard` (redirects to the Keycloak login
+  page and comes back to the requested URL), plus the signed-in user and a
+  Sign out button in the header
+- Hands-on exercise: expose `GET /api/me` from the JWT and show the backend's
+  view of the identity in an account panel — `exercises/jwt-me-endpoint.md`,
+  from the `day3` tag
 - **Goal:** only authenticated users can see/create boards; each board is tied to
   its creator
 
 ### Day 4 — Authorization & polish
 - `BoardMember` model: owner can invite members, members can move cards but not
-  delete the board — combine the JWT's coarse role with fine-grained per-board
-  checks in the backend
+  delete the board — replaces day 3's owner-only rule in `BoardAccess` with a
+  real per-board role, still layered on top of the JWT's coarse role
 - Optional stretch: Jakarta WebSocket for live card updates across connected
   clients, or MicroProfile Health/OpenAPI for ops polish
 - Wrap-up: students demo their board, short retro on what MicroProfile JWT +
@@ -131,8 +144,7 @@ services:
       timeout: 5s
       retries: 10
 
-  # Day 1: present but nothing talks to it yet. Wired in on day 3 together
-  # with keycloak/kanban-realm.json.
+  # Imports keycloak/kanban-realm.json at startup (day 3).
   keycloak:
     image: quay.io/keycloak/keycloak:26.0
     container_name: kanban-keycloak
@@ -169,10 +181,14 @@ Notes:
 - No `version:` key — obsolete in Compose v2.
 - Keycloak 26 renamed the bootstrap admin vars to `KC_BOOTSTRAP_ADMIN_*` and
   imports every file under the mounted `data/import` directory.
-- `backend` waits for Postgres to be **healthy**, not merely started, and does
-  not depend on Keycloak.
+- `backend` waits for Postgres to be **healthy**, not merely started; since day 3
+  it also waits for Keycloak to have **started** — no more, because the JWKS
+  fetch happens lazily on the first token.
 - The Dev Container (`.devcontainer/docker-compose.yml`) layers a `dev` service
-  on top of this file and, on day 1, starts only `postgres` alongside it.
+  on top of this file and starts `postgres` and `keycloak` alongside it.
+- The backend reaches Keycloak at `keycloak:8080`; the browser reaches it at
+  `localhost:8081`. That asymmetry is why the JWKS URL and the expected `iss`
+  in `microprofile-config.properties` have different hosts.
 
 ## Reference resources
 
@@ -192,15 +208,22 @@ Notes:
 ## Open questions / next steps
 
 - **Done:** `pom.xml` — Jakarta EE 11 Web Profile + MicroProfile 7.1 (JWT
-  included); explicit JWT config is stubbed as comments in
-  `microprofile-config.properties` for day 3.
+  included); the JWT settings now live for real in
+  `microprofile-config.properties`.
 - **Done / reversed:** day 1 `BoardResource` is deliberately *unsecured*;
   MicroProfile JWT is introduced on day 3, not as a day 1 starter.
-- **Open:** draft `keycloak/kanban-realm.json` (realm, `kanban-app` client,
-  `user` / `admin` roles, test users) — the `keycloak/` directory is still empty.
+- **Done:** `keycloak/kanban-realm.json` — realm, public `kanban-app` client
+  with PKCE, `user` / `admin` roles, three test users, and the roles→`groups`
+  and audience protocol mappers.
 - **Done:** day 2 `Card` entity + `PATCH /cards/{id}/move` and the Angular CDK
   drag-and-drop board detail view. Milestones are marked with annotated git tags
   (`day1`, `day2`, ...) on `main`; while the course is still being authored the
   tags may be force-moved when an earlier day is fixed.
+- **Decided (day 3):** ownership checks reach all the way down to columns and
+  cards (`BoardAccess`), rather than being left as a hole for day 4. Day 4 is
+  then purely about *sharing* a board, not about closing a gap.
+- **Open:** `GET /api/boards/{id}` answers 404 for a board that does not exist
+  and 403 for someone else's, which leaks the existence of other people's
+  boards. Fine for a course; worth a five-minute discussion on day 4.
 - **Open:** decide whether live updates (Jakarta WebSocket) make the day 4
   stretch goal or get cut.

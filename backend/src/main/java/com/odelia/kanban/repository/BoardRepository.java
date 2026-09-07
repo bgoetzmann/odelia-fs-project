@@ -25,4 +25,10 @@ public interface BoardRepository extends CrudRepository<Board, Long> {
     @Find
     @OrderBy("name")
     List<Board> findAllSortedByName();
+
+    /**
+     * The boards of one user - what {@code GET /api/boards} returns since day 3,
+     * where {@code owner} is the {@code preferred_username} taken from the JWT.
+     */
+    List<Board> findByOwnerOrderByNameAsc(String owner);
 }

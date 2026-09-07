@@ -3,14 +3,15 @@
 OpenLiberty (Jakarta EE 11 Web Profile + MicroProfile 7.1) + Angular + PostgreSQL,
 built over 4 days. See `fs-course-plan.md` for the full plan.
 
-**Day 2 is implemented: the drag-and-drop Kanban board, still no security.**
+**Day 3 is implemented: the board is secured with Keycloak and MicroProfile JWT,
+and every board belongs to the person who created it.**
 
 ## Layout
 
 ```
 backend/     Jakarta EE 11 Web Profile + MicroProfile 7.1 on OpenLiberty
-frontend/    Angular 20 (standalone components, signals) + Angular CDK
-keycloak/    realm import directory — filled in on day 3
+frontend/    Angular 20 (standalone components, signals) + Angular CDK + keycloak-js
+keycloak/    kanban-realm.json — imported by the Keycloak container at startup
 docker-compose.yml
 ```
 
@@ -20,8 +21,8 @@ docker-compose.yml
 
 Students only need **Docker + VS Code** (or nothing at all with GitHub
 Codespaces). Open the folder and run *Dev Containers: Reopen in Container*.
-This starts PostgreSQL and gives you a shell with Java 21, Maven and Node 22
-already installed — no local toolchain to set up.
+This starts PostgreSQL and Keycloak and gives you a shell with Java 21, Maven
+and Node 22 already installed — no local toolchain to set up.
 
 ```bash
 # inside the container, two terminals:
@@ -29,14 +30,13 @@ cd backend  && mvn liberty:dev     # http://localhost:9080, hot reload
 cd frontend && npm install && npm start   # http://localhost:4200
 ```
 
-See `.devcontainer/` for the configuration. Keycloak is added on day 3 by
-listing it in `runServices` in `.devcontainer/devcontainer.json`.
+See `.devcontainer/` for the configuration.
 
 ### With Docker Compose directly
 
 ```bash
-# 1. database + backend
-docker compose up -d --build postgres backend
+# 1. database + Keycloak + backend
+docker compose up -d --build postgres keycloak backend
 
 # 2. frontend (separate terminal)
 cd frontend
@@ -44,18 +44,23 @@ npm install      # first time only
 npm start        # http://localhost:4200
 ```
 
-The Keycloak container is declared in `docker-compose.yml` but is not started or
-wired in on day 1: `docker compose up -d keycloak` when you get to day 3.
+Opening <http://localhost:4200> now redirects to Keycloak. Sign in as
+`alice` / `alice` (see `keycloak/README.md` for the other accounts).
 
 ### Backend without Docker
 
 ```bash
-docker compose up -d postgres
+docker compose up -d postgres keycloak
 cd backend
+# Liberty runs on the host, so Keycloak is at localhost:8081, not keycloak:8080
+export MP_JWT_VERIFY_PUBLICKEY_LOCATION=http://localhost:8081/realms/kanban/protocol/openid-connect/certs
 mvn liberty:dev          # http://localhost:9080, hot reload
 ```
 
 ## Endpoints
+
+Every `/api` endpoint requires `Authorization: Bearer <token>` with the `user`
+or `admin` realm role — no token is a **401**, someone else's board is a **403**.
 
 | Method | Path                     | Description                                   |
 |--------|--------------------------|-----------------------------------------------|
@@ -76,19 +81,39 @@ mvn liberty:dev          # http://localhost:9080, hot reload
 | DELETE | `/api/cards/{id}`        | Delete a card                                 |
 | PATCH  | `/api/cards/{id}/move`   | Move a card: `{ "targetListId", "position" }` |
 
-Also available: `/health/ready` (MicroProfile Health, checks PostgreSQL),
-`/openapi` and `/openapi/ui` (MicroProfile OpenAPI), `/metrics`.
+Also available and left open on purpose (ops endpoints, not user data):
+`/health/ready` (MicroProfile Health, checks PostgreSQL), `/openapi` and
+`/openapi/ui` (MicroProfile OpenAPI), `/metrics`.
+
+### Trying it with curl
+
+The realm enables the password grant so a token can be fetched without a
+browser. Ask **localhost:8081** for it — a token minted at `keycloak:8080`
+carries the wrong `iss` and the backend rejects it.
 
 ```bash
-curl http://localhost:9080/api/boards
+TOKEN=$(curl -s http://localhost:8081/realms/kanban/protocol/openid-connect/token \
+  -d grant_type=password -d client_id=kanban-app \
+  -d username=alice -d password=alice | jq -r .access_token)
+
+curl -H "Authorization: Bearer $TOKEN" http://localhost:9080/api/boards
 curl -X POST http://localhost:9080/api/boards \
+     -H "Authorization: Bearer $TOKEN" \
      -H 'Content-Type: application/json' -d '{"name":"Sprint 1"}'
 
 # add a card to a column, then move it to another column at position 0
 curl -X POST http://localhost:9080/api/lists/1/cards \
+     -H "Authorization: Bearer $TOKEN" \
      -H 'Content-Type: application/json' -d '{"title":"Write the README"}'
 curl -X PATCH http://localhost:9080/api/cards/1/move \
+     -H "Authorization: Bearer $TOKEN" \
      -H 'Content-Type: application/json' -d '{"targetListId":2,"position":0}'
+
+# without a token: 401
+curl -i http://localhost:9080/api/boards
+
+# what the backend sees in the token
+echo "$TOKEN" | cut -d. -f2 | base64 -d 2>/dev/null | jq '{iss, aud, preferred_username, groups}'
 ```
 
 ## Notes on the stack
@@ -108,7 +133,24 @@ curl -X PATCH http://localhost:9080/api/cards/1/move \
   layer (no `ON DELETE CASCADE`).
 - CORS for `http://localhost:4200` is configured in `server.xml`, but the
   Angular dev server proxies `/api` to port 9080 (`frontend/proxy.conf.json`),
-  so the browser stays single-origin.
+  so the browser stays single-origin. Keycloak is *not* proxied: the browser
+  talks to `localhost:8081` directly, which is why the realm lists
+  `http://localhost:4200` under `webOrigins`.
+- **Security (day 3)** — `@LoginConfig(authMethod = "MP-JWT")` on
+  `KanbanApplication` puts the whole API behind bearer tokens; the issuer, the
+  JWKS URL and the expected audience are plain MicroProfile Config properties in
+  `microprofile-config.properties`, not Liberty-specific `server.xml` elements.
+  `backend/.../security/` holds the two beans on top of that: `CurrentUser`
+  (who is calling, are they an admin) and `BoardAccess` (does this board — or
+  the board this column/card belongs to — belong to them).
+- The backend reaches Keycloak at `keycloak:8080` while the browser reaches it
+  at `localhost:8081`. The JWKS fetch uses the first, the `iss` claim in the
+  token is the second: they are different URLs for the same server and both
+  appear in `microprofile-config.properties`.
+- On the Angular side, `src/app/auth/` mirrors the backend's `security/`
+  package: `AuthService` (keycloak-js + signals), `authInterceptor` (adds the
+  `Authorization` header and silently refreshes the token) and `authGuard`
+  (redirects to the Keycloak login page). `BoardService` never mentions a token.
 - Angular 20 is used; it requires Node >= 20.19 (or 22.12+). The Dev Container
   ships Node 22, so there is no host Node version to worry about.
 
@@ -117,9 +159,10 @@ curl -X PATCH http://localhost:9080/api/cards/1/move \
 - **Day 1** (tag `day1`) — boards and columns, full CRUD, no security.
 - **Day 2** (tag `day2`) — `Card` entity, `PATCH /cards/{id}/move`, and the
   Angular CDK drag-and-drop board at `/boards/:id`.
-- **Day 3** — Keycloak realm import, MicroProfile JWT (`@RolesAllowed`,
-  `@Inject JsonWebToken`), `keycloak-js` and an `HttpInterceptor` in Angular.
-- **Day 4** — `BoardMember` and per-board authorization.
+- **Day 3** (tag `day3`) — Keycloak realm import, MicroProfile JWT
+  (`@RolesAllowed`, `@Inject JsonWebToken`), boards owned by their creator, and
+  `keycloak-js` + an `HttpInterceptor` + a route guard in Angular.
+- **Day 4** — `BoardMember` and per-board authorization (sharing a board).
 
 Students can jump to the start of a day with `git checkout day1` (then
 `git switch -c my-work` to make changes).

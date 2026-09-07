@@ -1,6 +1,16 @@
 <header class="app-header">
   <h1>Kanban</h1>
-  <span class="tagline">Day 2 — the Kanban board, drag &amp; drop, no security yet</span>
+  <span class="tagline">Day 3 — signed in with Keycloak, every board is private</span>
+
+  @if (auth.authenticated()) {
+    <div class="account">
+      <span class="user">{{ auth.username() }}</span>
+      @if (auth.isAdmin()) {
+        <span class="badge">admin</span>
+      }
+      <button type="button" class="sign-out" (click)="auth.logout()">Sign out</button>
+    </div>
+  }
 </header>
 
 <main>

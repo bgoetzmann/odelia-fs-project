@@ -319,28 +319,37 @@ discovered.
 
 ## 7. MicroProfile Config: externalizing a value
 
-`BoardResource` needs a placeholder owner for boards created before there's
-any authentication. Instead of hardcoding it, it's injected via
-**MicroProfile Config**:
-
-```java
-// backend/src/main/java/com/odelia/kanban/resource/BoardResource.java
-/** Day 1 has no security; on day 3 the owner comes from the JWT subject instead. */
-@Inject
-@ConfigProperty(name = "kanban.default.owner", defaultValue = "anonymous")
-String defaultOwner;
-```
+Anything that changes between a laptop, a Docker network and a real deployment
+belongs outside the code. The clearest example in this project is the day 3 JWT
+setup — nothing in Java mentions Keycloak at all:
 
 ```properties
 # backend/src/main/resources/META-INF/microprofile-config.properties
-kanban.default.owner=anonymous
+mp.jwt.verify.publickey.location=http://keycloak:8080/realms/kanban/protocol/openid-connect/certs
+mp.jwt.verify.issuer=http://localhost:8081/realms/kanban
+mp.jwt.verify.audiences=kanban-app
 ```
 
-The value could equally come from an environment variable or a system
-property — MicroProfile Config reads from multiple sources in a defined
-priority order, and the properties file is just the lowest-priority, always
--present default. This is the same mechanism `server.xml` uses for its own
-knobs, just at the Liberty level instead of the app level:
+Your own properties are read the same way, injected wherever they're needed:
+
+```java
+@Inject
+@ConfigProperty(name = "kanban.some.knob", defaultValue = "a sensible default")
+String knob;
+```
+
+MicroProfile Config reads from several sources in a defined priority order, and
+this properties file is just the lowest-priority, always-present default. The
+environment beats it, which is why running Liberty on the host instead of in
+Docker needs no edit — only:
+
+```bash
+export MP_JWT_VERIFY_PUBLICKEY_LOCATION=http://localhost:8081/realms/kanban/protocol/openid-connect/certs
+```
+
+(dots become underscores, all upper case). This is the same mechanism
+`server.xml` uses for its own knobs, just at the Liberty level instead of the
+app level:
 
 ```xml
 <!-- backend/src/main/liberty/config/server.xml -->
@@ -433,19 +442,28 @@ Three things worth noticing:
   development. (In production, once both are served from behind the same
   reverse proxy, this becomes unnecessary — same story as the Angular-side
   proxy in `proxy.conf.json`.)
-- `<mpMetrics authentication="false"/>` and the comment above it
-  ("Day 1 has no security: keep /metrics and /health open") is a flag for
-  what day 3 changes — those endpoints get locked down once JWT auth lands.
+- `<mpMetrics authentication="false"/>` stays open even after day 3 secures the
+  API: `/metrics` and `/health` carry no user data, and the readiness probe in
+  `docker-compose.yml` has no token to present. Deciding *which* endpoints an
+  authentication requirement should cover is part of the design, not an
+  afterthought.
+- Notice what is **not** here after day 3: no `<mpJwt>` element. The issuer, the
+  JWKS location and the expected audience are MicroProfile Config properties
+  (§7), so the same configuration would work on any MicroProfile runtime, not
+  just Liberty.
 
 ## 10. Where this goes next
 
-Day 2 (above) added the `Card` triplet and the `/move` endpoint. Day 3 brings
-Keycloak into the loop and secures endpoints with `@RolesAllowed` backed by
-MicroProfile JWT — at that point `kanban.default.owner` (§7) stops being used,
-replaced by the authenticated subject from the token, and the
-`<mpMetrics>`/CORS/`server.xml` config above gets tightened accordingly. The
-shapes introduced here — entity + repository + resource, one triplet per
-concept — are the pattern the rest of the backend builds on.
+Day 2 (above) added the `Card` triplet and the `/move` endpoint. Day 3 brought
+Keycloak into the loop: `@LoginConfig(authMethod = "MP-JWT")` on
+`KanbanApplication` puts the whole API behind bearer tokens, `@RolesAllowed`
+guards each resource, and the new `security/` package answers the two questions
+a role alone cannot — `CurrentUser` (`@Inject JsonWebToken`, so a board can be
+tagged with its creator) and `BoardAccess` (is this board, or the board behind
+this column or card, actually yours?). Day 4 turns that owner-only rule into a
+shareable `BoardMember` model. The shapes introduced here — entity + repository
++ resource, one triplet per concept — are the pattern the rest of the backend
+builds on.
 
 ## Further reading
 

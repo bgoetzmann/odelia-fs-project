@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<server description="Kanban server - Day 2 (Kanban board, no security yet)">
+<server description="Kanban server - Day 3 (Kanban board secured with Keycloak / MicroProfile JWT)">
 
     <featureManager>
         <!-- Jakarta EE 11 Web Profile: CDI, JAX-RS, JPA 3.2, JSON-B, Bean Validation,
@@ -54,7 +54,15 @@
           allowCredentials="true"
           maxAge="3600"/>
 
-    <!-- Day 1 has no security: keep /metrics and /health open -->
+    <!-- MicroProfile JWT (day 3). There is deliberately no <mpJwt> element here:
+         the issuer, the JWKS location and the expected audience are plain
+         MicroProfile Config properties in microprofile-config.properties, so the
+         same configuration would work on any MicroProfile runtime. What switches
+         the application to bearer-token authentication is the
+         @LoginConfig(authMethod = "MP-JWT") annotation on KanbanApplication. -->
+
+    <!-- /metrics and /health stay open: they are ops endpoints, not user data,
+         and the readiness probe in docker-compose has no token to present. -->
     <mpMetrics authentication="false"/>
 
     <keyStore id="defaultKeyStore" password="kanbanKeystorePassword"/>

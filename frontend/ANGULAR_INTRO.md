@@ -411,8 +411,24 @@ The "add a card" form carries a description textarea as well, so
 
 The concepts above — signals for state, a service per resource, `@if`/`@for`
 in templates, one component per route — are the pattern the rest of the app
-builds on. Day 3 introduces genuinely new pieces: route guards and an HTTP
-interceptor that attaches the Keycloak JWT to every request.
+builds on.
+
+Day 3 adds `src/app/auth/`, and it is worth reading as a set:
+
+- **`AuthService`** wraps `keycloak-js` and republishes it as signals
+  (`authenticated()`, `username()`, `isAdmin()`), so a template can react to the
+  session the same way it reacts to any other state.
+- **`authInterceptor`** is a plain function registered with
+  `provideHttpClient(withInterceptors([...]))`. It sits between `HttpClient` and
+  the network and adds `Authorization: Bearer …` to every `/api` call — which is
+  why `BoardService` never mentions a token, and why a client generated from the
+  OpenAPI document would work unchanged.
+- **`authGuard`** is a `CanActivateFn` attached to the routes in
+  `app.routes.ts`. It returns `true`, or sends the browser to Keycloak.
+
+The one piece of plumbing that ties them together is `provideAppInitializer` in
+`app.config.ts`: Angular waits for that promise before rendering anything, so by
+the time a guard or an interceptor runs, Keycloak has already answered.
 
 ## Further reading
 

@@ -5,9 +5,11 @@ import com.odelia.kanban.entity.BoardList;
 import com.odelia.kanban.repository.BoardListRepository;
 import com.odelia.kanban.repository.BoardRepository;
 import com.odelia.kanban.repository.CardRepository;
+import com.odelia.kanban.security.BoardAccess;
+import com.odelia.kanban.security.CurrentUser;
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.Consumes;
@@ -30,21 +32,26 @@ import java.util.List;
 /**
  * CRUD over boards, plus the lists (columns) they contain.
  *
- * <p>Day 1 has no security: the owner is a fixed placeholder. On day 3 it will
- * be taken from the JWT subject.</p>
+ * <p>Since day 3 every endpoint needs a valid Keycloak token: {@code @RolesAllowed}
+ * turns an anonymous call into a 401 and a token without the {@code user} role
+ * into a 403. On top of that a board belongs to the person who created it - the
+ * {@code preferred_username} from the JWT - so the listing is filtered and the
+ * per-board endpoints go through {@link BoardAccess}.</p>
  */
 @Path("/boards")
 @RequestScoped
+@RolesAllowed({ CurrentUser.USER, CurrentUser.ADMIN })
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class BoardResource {
 
     private static final List<String> DEFAULT_LISTS = List.of("To do", "Doing", "Done");
 
-    /** Day 1 has no security; on day 3 the owner comes from the JWT subject instead. */
     @Inject
-    @ConfigProperty(name = "kanban.default.owner", defaultValue = "anonymous")
-    String defaultOwner;
+    CurrentUser currentUser;
+
+    @Inject
+    BoardAccess access;
 
     @Inject
     BoardRepository boards;
@@ -58,29 +65,31 @@ public class BoardResource {
     @Context
     UriInfo uriInfo;
 
+    /** The caller's own boards - or every board, for an admin. */
     @GET
     public List<Board> listBoards() {
-        return boards.findAllSortedByName();
+        return currentUser.isAdmin()
+                ? boards.findAllSortedByName()
+                : boards.findByOwnerOrderByNameAsc(currentUser.name());
     }
 
     @GET
     @Path("/{id}")
     public Board getBoard(@PathParam("id") long id) {
-        return boards.findById(id).orElseThrow(() -> notFound(id));
+        return accessibleBoard(id);
     }
 
     /**
      * Creates a board and seeds it with the three usual columns, so a new board
-     * is immediately usable from the UI.
+     * is immediately usable from the UI. The owner always comes from the token:
+     * an {@code owner} sent by the client is ignored.
      */
     @POST
     @Transactional
     public Response createBoard(@Valid Board board) {
         board.setId(null);
         board.setCreatedAt(LocalDateTime.now());
-        if (board.getOwner() == null || board.getOwner().isBlank()) {
-            board.setOwner(defaultOwner);
-        }
+        board.setOwner(currentUser.name());
         Board created = boards.insert(board);
 
         for (int i = 0; i < DEFAULT_LISTS.size(); i++) {
@@ -96,7 +105,7 @@ public class BoardResource {
     @Path("/{id}")
     @Transactional
     public Board updateBoard(@PathParam("id") long id, @Valid Board board) {
-        Board existing = boards.findById(id).orElseThrow(() -> notFound(id));
+        Board existing = accessibleBoard(id);
         existing.setName(board.getName());
         return boards.save(existing);
     }
@@ -105,7 +114,7 @@ public class BoardResource {
     @Path("/{id}")
     @Transactional
     public Response deleteBoard(@PathParam("id") long id) {
-        Board existing = boards.findById(id).orElseThrow(() -> notFound(id));
+        Board existing = accessibleBoard(id);
         for (BoardList column : lists.findByBoardIdOrderByPositionAsc(id)) {
             cards.deleteByListId(column.getId());
         }
@@ -117,7 +126,7 @@ public class BoardResource {
     @GET
     @Path("/{id}/lists")
     public List<BoardList> listColumns(@PathParam("id") long id) {
-        boards.findById(id).orElseThrow(() -> notFound(id));
+        accessibleBoard(id);
         return lists.findByBoardIdOrderByPositionAsc(id);
     }
 
@@ -125,13 +134,20 @@ public class BoardResource {
     @Path("/{id}/lists")
     @Transactional
     public Response addColumn(@PathParam("id") long id, @Valid BoardList column) {
-        boards.findById(id).orElseThrow(() -> notFound(id));
+        accessibleBoard(id);
         column.setId(null);
         column.setBoardId(id);
         BoardList created = lists.insert(column);
         return Response.created(uriInfo.getBaseUriBuilder().path("lists").path(String.valueOf(created.getId())).build())
                        .entity(created)
                        .build();
+    }
+
+    /** Loads a board the caller is allowed to work on: 404 if it is gone, 403 if it is not theirs. */
+    private Board accessibleBoard(long id) {
+        Board board = boards.findById(id).orElseThrow(() -> notFound(id));
+        access.requireBoardAccess(board);
+        return board;
     }
 
     private WebApplicationException notFound(long id) {

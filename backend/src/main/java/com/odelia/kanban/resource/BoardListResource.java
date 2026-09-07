@@ -4,6 +4,9 @@ import com.odelia.kanban.entity.BoardList;
 import com.odelia.kanban.entity.Card;
 import com.odelia.kanban.repository.BoardListRepository;
 import com.odelia.kanban.repository.CardRepository;
+import com.odelia.kanban.security.BoardAccess;
+import com.odelia.kanban.security.CurrentUser;
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -27,12 +30,20 @@ import java.util.List;
 /**
  * Operations on a single column and the cards it contains. Columns are created
  * through {@code POST /api/boards/{id}/lists} (see {@link BoardResource}).
+ *
+ * <p>A column carries no owner of its own, so every endpoint hands it to
+ * {@link BoardAccess}, which walks up to the board and checks the caller
+ * against its owner.</p>
  */
 @Path("/lists")
 @RequestScoped
+@RolesAllowed({ CurrentUser.USER, CurrentUser.ADMIN })
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class BoardListResource {
+
+    @Inject
+    BoardAccess access;
 
     @Inject
     BoardListRepository lists;
@@ -46,14 +57,14 @@ public class BoardListResource {
     @GET
     @Path("/{id}")
     public BoardList getColumn(@PathParam("id") long id) {
-        return lists.findById(id).orElseThrow(() -> notFound(id));
+        return accessibleColumn(id);
     }
 
     @PUT
     @Path("/{id}")
     @Transactional
     public BoardList updateColumn(@PathParam("id") long id, @Valid BoardList column) {
-        BoardList existing = lists.findById(id).orElseThrow(() -> notFound(id));
+        BoardList existing = accessibleColumn(id);
         existing.setName(column.getName());
         existing.setPosition(column.getPosition());
         return lists.save(existing);
@@ -63,7 +74,7 @@ public class BoardListResource {
     @Path("/{id}")
     @Transactional
     public Response deleteColumn(@PathParam("id") long id) {
-        BoardList existing = lists.findById(id).orElseThrow(() -> notFound(id));
+        BoardList existing = accessibleColumn(id);
         cards.deleteByListId(id);
         lists.delete(existing);
         return Response.noContent().build();
@@ -72,7 +83,7 @@ public class BoardListResource {
     @GET
     @Path("/{id}/cards")
     public List<Card> listCards(@PathParam("id") long id) {
-        lists.findById(id).orElseThrow(() -> notFound(id));
+        accessibleColumn(id);
         return cards.findByListIdOrderByPositionAsc(id);
     }
 
@@ -81,7 +92,7 @@ public class BoardListResource {
     @Path("/{id}/cards")
     @Transactional
     public Response addCard(@PathParam("id") long id, @Valid Card card) {
-        lists.findById(id).orElseThrow(() -> notFound(id));
+        accessibleColumn(id);
         card.setId(null);
         card.setListId(id);
         card.setPosition((int) cards.countByListId(id));
@@ -89,6 +100,13 @@ public class BoardListResource {
         return Response.created(uriInfo.getBaseUriBuilder().path("cards").path(String.valueOf(created.getId())).build())
                        .entity(created)
                        .build();
+    }
+
+    /** Loads a column on a board the caller owns: 404 if it is gone, 403 if the board is not theirs. */
+    private BoardList accessibleColumn(long id) {
+        BoardList column = lists.findById(id).orElseThrow(() -> notFound(id));
+        access.requireColumnAccess(column);
+        return column;
     }
 
     private WebApplicationException notFound(long id) {

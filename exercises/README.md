@@ -7,3 +7,4 @@ files it touches; reference solutions, where they exist, are on `main`.
 |---|---|---|
 | [Rename a board inline](board-rename.md) | Frontend (Angular) | `day1` |
 | [Generate the frontend API client from OpenAPI](openapi-client.md) | Full-stack (tooling) | `day2` |
+| [A `/api/me` endpoint, and an account panel](jwt-me-endpoint.md) | Full-stack (MicroProfile JWT + Angular) | `day3` |
