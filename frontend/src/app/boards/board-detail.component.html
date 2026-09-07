@@ -75,21 +75,26 @@
             }
           </div>
 
-          <form class="new-card" (ngSubmit)="addCard(column)">
-            <input
-              [name]="'draft-title-' + column.id"
-              [(ngModel)]="draftFor(column.id!).title"
-              placeholder="Add a card…"
-              autocomplete="off"
-              maxlength="200" />
-            <textarea
-              [name]="'draft-description-' + column.id"
-              [(ngModel)]="draftFor(column.id!).description"
-              placeholder="Description (optional)"
-              rows="2"
-              maxlength="2000"></textarea>
-            <button type="submit" [disabled]="!draftFor(column.id!).title.trim()">Add card</button>
-          </form>
+          @if (composingColumnId() === column.id) {
+            <form class="new-card" (ngSubmit)="addCard(column)">
+              <input
+                #composerInput
+                [name]="'draft-title-' + column.id"
+                [(ngModel)]="draftFor(column.id!).title"
+                placeholder="Card title…"
+                autocomplete="off"
+                maxlength="200"
+                (keydown.escape)="cancelComposing()" />
+              <div class="composer-actions">
+                <button type="submit" [disabled]="!draftFor(column.id!).title.trim()">Add card</button>
+                <button type="button" class="ghost" (click)="cancelComposing()">Cancel</button>
+              </div>
+            </form>
+          } @else {
+            <button type="button" class="add-card" (click)="startComposing(column.id!)">
+              + Add a card
+            </button>
+          }
         </section>
       }
     </div>

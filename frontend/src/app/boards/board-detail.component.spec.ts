@@ -100,6 +100,26 @@ describe('BoardDetailComponent', () => {
     expect(component.cardsFor(1)[0].description).toBe('Now with details');
   });
 
+  it('opens and closes the "add a card" composer one column at a time', () => {
+    const fixture = TestBed.createComponent(BoardDetailComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    http.expectOne('/api/boards/7').flush({ id: 7, name: 'Sprint 1' });
+    http.expectOne('/api/boards/7/lists').flush([
+      { id: 1, boardId: 7, name: 'To do', position: 0 }
+    ]);
+    http.expectOne('/api/lists/1/cards').flush([]);
+
+    expect(component.composingColumnId()).toBeNull();
+
+    component.startComposing(1);
+    expect(component.composingColumnId()).toBe(1);
+
+    component.cancelComposing();
+    expect(component.composingColumnId()).toBeNull();
+  });
+
   it('POSTs title and description from the "add a card" form', () => {
     const fixture = TestBed.createComponent(BoardDetailComponent);
     const component = fixture.componentInstance;

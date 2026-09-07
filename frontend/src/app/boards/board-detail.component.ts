@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, ElementRef, OnInit, inject, signal, viewChildren } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import {
@@ -25,6 +25,11 @@ import { BoardService } from '../services/board.service';
  * A card also shows its description under the title, and clicking a card opens
  * an inline editor for the title and description, persisted with
  * {@code PUT /api/cards/{id}}.
+ *
+ * New cards are added from a collapsed "+ Add a card" button at the foot of each
+ * column: clicking it opens a one-field composer (title only) that stays open so
+ * several cards can be typed in a row. The description is filled in afterwards
+ * through the inline card editor.
  */
 @Component({
   selector: 'app-board-detail',
@@ -46,6 +51,11 @@ export class BoardDetailComponent implements OnInit {
   /** One "add a card" draft (title + description) per column, keyed by column id. */
   readonly drafts: Record<number, { title: string; description: string }> = {};
 
+  /** Id of the column whose "add a card" composer is open, or null when all are collapsed. */
+  readonly composingColumnId = signal<number | null>(null);
+  /** The composer's title input (only one is in the DOM at a time), used to keep focus on it. */
+  private readonly composerInputs = viewChildren<ElementRef<HTMLInputElement>>('composerInput');
+
   /** Id of the card currently being edited, or null when no editor is open. */
   readonly editingCardId = signal<number | null>(null);
   /** Working copy bound to the inline editor while {@link editingCardId} is set. */
@@ -65,6 +75,7 @@ export class BoardDetailComponent implements OnInit {
     this.loading.set(true);
     this.error.set(null);
     this.editingCardId.set(null);
+    this.composingColumnId.set(null);
     this.boardService.getBoard(this.boardId).subscribe({
       next: board => this.board.set(board),
       error: err => this.fail('Could not load the board', err)
@@ -87,6 +98,22 @@ export class BoardDetailComponent implements OnInit {
     return (this.drafts[columnId] ??= { title: '', description: '' });
   }
 
+  /** Opens the "add a card" composer for a column and focuses its title input. */
+  startComposing(columnId: number): void {
+    this.editingCardId.set(null);
+    this.composingColumnId.set(columnId);
+    this.focusComposer();
+  }
+
+  cancelComposing(): void {
+    this.composingColumnId.set(null);
+  }
+
+  /** Moves focus to the composer's title input after the view has rendered it. */
+  private focusComposer(): void {
+    setTimeout(() => this.composerInputs()[0]?.nativeElement.focus());
+  }
+
   addCard(column: BoardList): void {
     if (column.id === undefined) {
       return;
@@ -103,6 +130,8 @@ export class BoardDetailComponent implements OnInit {
         this.mutate(column.id!, cards => cards.push(card));
         draft.title = '';
         draft.description = '';
+        // Keep the composer open so several cards can be added in a row.
+        this.focusComposer();
       },
       error: err => this.fail(`Could not add "${title}"`, err)
     });
