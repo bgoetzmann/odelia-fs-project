@@ -91,9 +91,13 @@ odelia-fs-project/
 ### Day 3 — Token-based security  ✅ implemented
 - Keycloak in the loop: `keycloak/kanban-realm.json` is imported at container
   startup (`kanban` realm, public `kanban-app` client with PKCE, `user`/`admin`
-  realm roles, three test users — `alice`, `bob`, `carol` the admin). Two
+  realm roles, three test users — `alice`, `bob`, `carol` the admin). Three
   protocol mappers do the real work: realm roles → the `groups` claim that
-  MicroProfile JWT reads, and an audience mapper adding `kanban-app` to `aud`
+  MicroProfile JWT reads, an audience mapper adding `kanban-app` to `aud`, and
+  the username → a `upn` claim (Liberty's mpJwt feature builds the principal
+  from `userNameAttribute`, which defaults to `upn`; a Keycloak access token
+  has none, so without this mapper every token is rejected before the resource
+  runs)
 - Backend: `@LoginConfig(authMethod = "MP-JWT")` on `KanbanApplication`,
   `mp.jwt.verify.publickey.location` / `.issuer` / `.audiences` in
   `microprofile-config.properties` (no Liberty-specific `<mpJwt>` element),
@@ -110,6 +114,19 @@ odelia-fs-project/
 - Hands-on exercise: expose `GET /api/me` from the JWT and show the backend's
   view of the identity in an account panel — `exercises/jwt-me-endpoint.md`,
   from the `day3` tag
+- The 403 that `BoardAccess` raises is a plain `jakarta.ws.rs.ForbiddenException`;
+  a `ForbiddenExceptionMapper` turns it into a JSON body and, being a mapper
+  specific to that type, keeps it away from the `mpMetrics` catch-all mapper
+  that would otherwise log a misleading `CWPMI2006W "unhandled exception"`
+  warning on every ownership denial
+- **User model on day 3 — ownership only.** There is no `User` entity or table:
+  users live in Keycloak and the backend's whole view of "who" is `CurrentUser`
+  reading the token. Three layers, and only the last touches domain data:
+  (1) identity — the `preferred_username`, not persisted; (2) two global realm
+  roles — `user` gates every endpoint, `admin` bypasses ownership; (3) a single
+  `owner` username string per `Board`, set from the token at creation and never
+  editable or client-supplied. `BoardList` and `Card` carry no owner — they
+  inherit the board's. Sharing (`BoardMember`, per-board roles) is day 4.
 - **Goal:** only authenticated users can see/create boards; each board is tied to
   its creator
 
@@ -213,8 +230,8 @@ Notes:
 - **Done / reversed:** day 1 `BoardResource` is deliberately *unsecured*;
   MicroProfile JWT is introduced on day 3, not as a day 1 starter.
 - **Done:** `keycloak/kanban-realm.json` — realm, public `kanban-app` client
-  with PKCE, `user` / `admin` roles, three test users, and the roles→`groups`
-  and audience protocol mappers.
+  with PKCE, `user` / `admin` roles, three test users, and the roles→`groups`,
+  audience and username→`upn` protocol mappers.
 - **Done:** day 2 `Card` entity + `PATCH /cards/{id}/move` and the Angular CDK
   drag-and-drop board detail view. Milestones are marked with annotated git tags
   (`day1`, `day2`, ...) on `main`; while the course is still being authored the
