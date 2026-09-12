@@ -9,7 +9,7 @@
   "service": "dev",
   "workspaceFolder": "/workspace/odelia-fs-project",
 
-  // Day 3: the database and Keycloak come up with the dev container; the
+  // The database and Keycloak come up with the dev container; the
   // backend and the frontend are still run by hand (mvn liberty:dev / npm start).
   "runServices": ["postgres", "keycloak"],
 

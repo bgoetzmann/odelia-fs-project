@@ -73,7 +73,7 @@ export class AppComponent {
 <!-- frontend/src/app/app.component.html -->
 <header class="app-header">
   <h1>Kanban</h1>
-  <span class="tagline">Day 1 — boards and their columns, no security yet</span>
+  <span class="tagline">Boards and their columns, no security yet</span>
 </header>
 
 <main>
@@ -313,7 +313,7 @@ compile-time checked, autocompleted JSON responses.
 
 ## 10. Drag and drop with the Angular CDK
 
-Day 2's board detail view uses the [Angular CDK](https://material.angular.io/cdk/drag-drop/overview)
+The board detail view uses the [Angular CDK](https://material.angular.io/cdk/drag-drop/overview)
 (`@angular/cdk`) — a dependency-free toolbox of behaviours. `BoardDetailComponent`
 imports three standalone directives:
 
@@ -399,7 +399,7 @@ Two details worth noting:
   `$event.stopPropagation()` before `deleteCard(card)` to keep the editor closed.
 
 `updateCard` issues `PUT /api/cards/{id}` with `{ title, description }` — the
-same endpoint from day 2's REST tour, now with a UI behind it.
+same endpoint from the earlier REST tour, now with a UI behind it.
 
 The "add a card" form carries a description textarea as well, so
 `createCard(listId, title, description?)` posts both fields to
@@ -413,7 +413,7 @@ The concepts above — signals for state, a service per resource, `@if`/`@for`
 in templates, one component per route — are the pattern the rest of the app
 builds on.
 
-Day 3 adds `src/app/auth/`, and it is worth reading as a set:
+Security adds `src/app/auth/`, and it is worth reading as a set:
 
 - **`AuthService`** wraps `keycloak-js` and republishes it as signals
   (`authenticated()`, `username()`, `isAdmin()`), so a template can react to the

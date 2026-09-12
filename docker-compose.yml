@@ -17,8 +17,8 @@ services:
       retries: 10
 
   # Imports every file under the mounted data/import directory at startup, so
-  # keycloak/kanban-realm.json becomes the "kanban" realm (day 3). The admin
-  # console is on http://localhost:8081 with admin/admin.
+  # keycloak/kanban-realm.json becomes the "kanban" realm. The admin console
+  # is on http://localhost:8081 with admin/admin.
   keycloak:
     image: quay.io/keycloak/keycloak:26.0
     container_name: kanban-keycloak

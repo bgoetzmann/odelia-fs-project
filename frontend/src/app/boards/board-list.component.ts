@@ -8,7 +8,7 @@ import { BoardService } from '../services/board.service';
 
 /**
  * Lists the boards, creates one, deletes one. Each board name links to the
- * day 2 drag-and-drop board detail view ({@code /boards/:id}).
+ * drag-and-drop board detail view ({@code /boards/:id}).
  */
 @Component({
   selector: 'app-board-list',

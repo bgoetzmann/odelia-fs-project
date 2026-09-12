@@ -239,7 +239,7 @@ column always belongs to a board.
 
 ### 4a. `PATCH` and a record as the request body: the card move endpoint
 
-Day 2's `CardResource` adds one endpoint that isn't plain CRUD —
+`CardResource` adds one endpoint that isn't plain CRUD —
 `PATCH /api/cards/{id}/move`, called by the drag-and-drop UI every time a card
 is dropped. `@PATCH` (`jakarta.ws.rs.PATCH`) has been a standard annotation
 since Jakarta REST 3.1, alongside `@GET`/`@POST`/`@PUT`/`@DELETE`.
@@ -320,7 +320,7 @@ discovered.
 ## 7. MicroProfile Config: externalizing a value
 
 Anything that changes between a laptop, a Docker network and a real deployment
-belongs outside the code. The clearest example in this project is the day 3 JWT
+belongs outside the code. The clearest example in this project is the JWT
 setup — nothing in Java mentions Keycloak at all:
 
 ```properties
@@ -442,28 +442,28 @@ Three things worth noticing:
   development. (In production, once both are served from behind the same
   reverse proxy, this becomes unnecessary — same story as the Angular-side
   proxy in `proxy.conf.json`.)
-- `<mpMetrics authentication="false"/>` stays open even after day 3 secures the
-  API: `/metrics` and `/health` carry no user data, and the readiness probe in
-  `docker-compose.yml` has no token to present. Deciding *which* endpoints an
-  authentication requirement should cover is part of the design, not an
-  afterthought.
-- Notice what is **not** here after day 3: no `<mpJwt>` element. The issuer, the
+- `<mpMetrics authentication="false"/>` stays open even though the API is
+  otherwise secured: `/metrics` and `/health` carry no user data, and the
+  readiness probe in `docker-compose.yml` has no token to present. Deciding
+  *which* endpoints an authentication requirement should cover is part of the
+  design, not an afterthought.
+- Notice what is **not** here: no `<mpJwt>` element. The issuer, the
   JWKS location and the expected audience are MicroProfile Config properties
   (§7), so the same configuration would work on any MicroProfile runtime, not
   just Liberty.
 
 ## 10. Where this goes next
 
-Day 2 (above) added the `Card` triplet and the `/move` endpoint. Day 3 brought
-Keycloak into the loop: `@LoginConfig(authMethod = "MP-JWT")` on
+The `Card` triplet and the `/move` endpoint (above) came before Keycloak
+entered the loop: `@LoginConfig(authMethod = "MP-JWT")` on
 `KanbanApplication` puts the whole API behind bearer tokens, `@RolesAllowed`
 guards each resource, and the new `security/` package answers the two questions
 a role alone cannot — `CurrentUser` (`@Inject JsonWebToken`, so a board can be
 tagged with its creator) and `BoardAccess` (is this board, or the board behind
-this column or card, actually yours?). Day 4 turns that owner-only rule into a
-shareable `BoardMember` model. The shapes introduced here — entity + repository
-+ resource, one triplet per concept — are the pattern the rest of the backend
-builds on.
+this column or card, actually yours?). A future shareable `BoardMember` model
+would turn that owner-only rule into per-board authorization. The shapes
+introduced here — entity + repository + resource, one triplet per concept —
+are the pattern the rest of the backend builds on.
 
 ## Further reading
 

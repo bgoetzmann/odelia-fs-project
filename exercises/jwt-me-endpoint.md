@@ -1,7 +1,7 @@
 # Exercise — A `/api/me` endpoint, and an account panel that shows it
 
 **Track:** Full-stack (MicroProfile JWT + Angular)
-**Starting point:** the `day3` tag
+**Starting point:** commit `a02c4d7` (token-based security: Keycloak, MicroProfile JWT, per-board ownership)
 **Estimated time:** 60–90 min
 **New backend code:** one small JAX-RS resource — everything it needs is already injectable
 
@@ -9,7 +9,7 @@
 
 ## Context
 
-After day 3 the app is secured, but the identity behind it is invisible. The
+At this starting point the app is secured, but the identity behind it is invisible. The
 header shows `alice`, and that string comes from the *frontend's* copy of the
 token (`AuthService` reads `tokenParsed.preferred_username`). Nobody has checked
 what the **backend** thinks it received — and when a token is rejected, "what
@@ -62,7 +62,7 @@ by side.
 ## Getting started
 
 ```bash
-git checkout day3
+git checkout a02c4d7
 git switch -c exercise/jwt-me
 docker compose up -d postgres keycloak
 cd backend && mvn liberty:dev        # http://localhost:9080, leave it running

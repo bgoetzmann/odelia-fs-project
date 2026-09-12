@@ -1,7 +1,7 @@
 # Exercise — Rename a board inline
 
 **Track:** Frontend (Angular)
-**Starting point:** the `day1` tag
+**Starting point:** commit `7840230` (boards and columns, full CRUD, no security)
 **Estimated time:** 45–90 min
 **New backend code:** none — `PUT /api/boards/{id}` and `boardService.renameBoard(...)` already exist
 
@@ -9,11 +9,11 @@
 
 ## Context
 
-After day 1 the board list works: you can create a board, delete one, and peek
-at its columns. But a board's name is fixed once created — a typo means delete
-and start over.
+At this starting point the board list works: you can create a board, delete
+one, and peek at its columns. But a board's name is fixed once created — a typo
+means delete and start over.
 
-The backend has supported renaming since day 1 (`PUT /api/boards/{id}`), and
+The backend already supports renaming (`PUT /api/boards/{id}`), and
 `frontend/src/app/services/board.service.ts` already exposes it:
 
 ```ts
@@ -47,7 +47,7 @@ text input pre-filled with the current name, plus **Save** and **Cancel**.
 ## Getting started
 
 ```bash
-git checkout day1
+git checkout 7840230
 git switch -c exercise/board-rename
 docker compose up -d postgres        # the backend needs the DB
 cd backend && mvn liberty:dev        # http://localhost:9080, leave it running

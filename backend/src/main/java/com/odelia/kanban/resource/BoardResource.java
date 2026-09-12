@@ -32,7 +32,7 @@ import java.util.List;
 /**
  * CRUD over boards, plus the lists (columns) they contain.
  *
- * <p>Since day 3 every endpoint needs a valid Keycloak token: {@code @RolesAllowed}
+ * <p>Every endpoint needs a valid Keycloak token: {@code @RolesAllowed}
  * turns an anonymous call into a 401 and a token without the {@code user} role
  * into a 403. On top of that a board belongs to the person who created it - the
  * {@code preferred_username} from the JWT - so the listing is filtered and the

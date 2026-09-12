@@ -13,8 +13,8 @@ import jakarta.validation.constraints.Size;
 import java.time.LocalDateTime;
 
 /**
- * A Kanban board. Day 1 has no security, so {@code owner} is filled in with a
- * placeholder; on day 3 it will come from the JWT subject.
+ * A Kanban board. {@code owner} is the {@code preferred_username} from the
+ * JWT subject of whoever created it.
  */
 @Entity
 @Table(name = "BOARD")

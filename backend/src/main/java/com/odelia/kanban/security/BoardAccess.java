@@ -10,7 +10,7 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.ForbiddenException;
 
 /**
- * Day 3 authorization: a board belongs to whoever created it, and only that
+ * Authorization: a board belongs to whoever created it, and only that
  * person - or an {@code admin} - may work on it or on anything inside it.
  *
  * <p>{@code @RolesAllowed} alone only answers "is this a signed-in Kanban
@@ -19,8 +19,8 @@ import jakarta.ws.rs.ForbiddenException;
  * coarse role check and this fine-grained one are complementary.</p>
  *
  * <p>Columns and cards store no owner of their own; they inherit one by walking
- * up to their board. Day 4 replaces this owner-only rule with the
- * {@code BoardMember} model, so a board can be shared with other people.</p>
+ * up to their board. A future {@code BoardMember} model would replace this
+ * owner-only rule, so a board can be shared with other people.</p>
  */
 @RequestScoped
 public class BoardAccess {

@@ -1,7 +1,7 @@
 # Exercise — Generate the frontend API client from OpenAPI
 
 **Track:** Full-stack — build tooling, a little frontend, an optional backend pass
-**Starting point:** the `day2` tag (security is still off, `/openapi` is open)
+**Starting point:** commit `dbf623f` (security is still off, `/openapi` is open)
 **Estimated time:** Tier A ≈ 30 min · Tier B ≈ 1 h · Tier C ≈ 1–1.5 h
 **New backend code:** none for Tiers A–C; the stretch adds MicroProfile OpenAPI annotations
 
@@ -50,7 +50,7 @@ The tiers build on each other; stop wherever your time runs out.
 ## Getting started
 
 ```bash
-git checkout day2
+git checkout dbf623f
 git switch -c exercise/openapi-client
 docker compose up -d postgres          # backend needs the DB
 cd backend && mvn liberty:dev          # leave running on :9080
@@ -162,7 +162,7 @@ components do not change.
    `importProvidersFrom(ApiModule.forRoot(...))` on older output). The generated
    services are `@Injectable` and use Angular's `HttpClient`, so
    `provideHttpClient(withFetch())` — already there — still applies, and so will
-   the day-3 auth interceptor.
+   the auth interceptor added later.
 
 2. **Set the base path** — see the Known gotcha below.
 
@@ -245,7 +245,7 @@ Do a backend annotation pass and watch the generated client improve.
   contract must match the running code.
 - Try `-g typescript-fetch` or the `openapi-typescript` package instead and
   explain why it does **not** fit an Angular app (no DI, no `HttpClient`, the
-  auth interceptor you add on day 3 never runs).
+  auth interceptor added later never runs).
 
 ## Reference solution
 

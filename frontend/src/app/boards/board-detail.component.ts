@@ -15,7 +15,7 @@ import { Board, BoardList, Card } from '../models/board';
 import { BoardService } from '../services/board.service';
 
 /**
- * Day 2 view: the real Kanban board for one board.
+ * The real Kanban board for one board.
  *
  * Columns come from the backend; each column's cards are dropped into an
  * Angular CDK {@link CdkDropList}. When a card is dropped, the local arrays are

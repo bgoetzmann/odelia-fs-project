@@ -1,10 +1,10 @@
 # Kanban — Full-Stack Course Project
 
-OpenLiberty (Jakarta EE 11 Web Profile + MicroProfile 7.1) + Angular + PostgreSQL,
-built over 4 days. See `fs-course-plan.md` for the full plan.
+OpenLiberty (Jakarta EE 11 Web Profile + MicroProfile 7.1) + Angular + PostgreSQL.
+See `fs-course-plan.md` for the full plan.
 
-**Day 3 is implemented: the board is secured with Keycloak and MicroProfile JWT,
-and every board belongs to the person who created it.**
+**The board is secured with Keycloak and MicroProfile JWT, and every board
+belongs to the person who created it.**
 
 ## Layout
 
@@ -136,7 +136,7 @@ echo "$TOKEN" | cut -d. -f2 | base64 -d 2>/dev/null | jq '{iss, aud, preferred_u
   so the browser stays single-origin. Keycloak is *not* proxied: the browser
   talks to `localhost:8081` directly, which is why the realm lists
   `http://localhost:4200` under `webOrigins`.
-- **Security (day 3)** — `@LoginConfig(authMethod = "MP-JWT")` on
+- **Security** — `@LoginConfig(authMethod = "MP-JWT")` on
   `KanbanApplication` puts the whole API behind bearer tokens; the issuer, the
   JWKS URL and the expected audience are plain MicroProfile Config properties in
   `microprofile-config.properties`, not Liberty-specific `server.xml` elements.
@@ -154,15 +154,4 @@ echo "$TOKEN" | cut -d. -f2 | base64 -d 2>/dev/null | jq '{iss, aud, preferred_u
 - Angular 20 is used; it requires Node >= 20.19 (or 22.12+). The Dev Container
   ships Node 22, so there is no host Node version to worry about.
 
-## Days
-
-- **Day 1** (tag `day1`) — boards and columns, full CRUD, no security.
-- **Day 2** (tag `day2`) — `Card` entity, `PATCH /cards/{id}/move`, and the
-  Angular CDK drag-and-drop board at `/boards/:id`.
-- **Day 3** (tag `day3`) — Keycloak realm import, MicroProfile JWT
-  (`@RolesAllowed`, `@Inject JsonWebToken`), boards owned by their creator, and
-  `keycloak-js` + an `HttpInterceptor` + a route guard in Angular.
-- **Day 4** — `BoardMember` and per-board authorization (sharing a board).
-
-Students can jump to the start of a day with `git checkout day1` (then
-`git switch -c my-work` to make changes).
+See `fs-course-plan.md` for the course's day-by-day breakdown.
