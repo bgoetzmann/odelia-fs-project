@@ -68,6 +68,32 @@ Implement operations equivalent to:
 - Close the editor on success
 - Surface an error using the component's existing pattern
 
+<details>
+<summary>Hint: the save-and-update pattern</summary>
+
+The trickiest part is threading the HTTP response back into the signal
+without a full reload. `createBoard` already shows the shape:
+
+```ts
+saveRename(board: Board): void {
+  const name = this.renameDraft.trim();
+  if (!name || board.id === undefined) {
+    return;
+  }
+  this.boardService.renameBoard(board.id, name).subscribe({
+    next: updated => {
+      this.boards.update(list =>
+        list.map(b => (b.id === board.id ? updated : b))
+            .sort((a, b) => a.name.localeCompare(b.name)));
+      this.editingBoardId.set(null);
+    },
+    error: err => this.fail(`Could not rename "${board.name}"`, err)
+  });
+}
+```
+
+</details>
+
 ## 5. Add the Template Interaction
 
 Use Angular control flow to display either:
@@ -95,6 +121,40 @@ Use the repository's TestBed pattern with:
 provideHttpClient()
 provideHttpClientTesting()
 ```
+
+<details>
+<summary>Hint: the HttpTestingController test skeleton</summary>
+
+```ts
+it('PUTs the new name and re-sorts the list', () => {
+  const fixture = TestBed.createComponent(BoardListComponent);
+  const component = fixture.componentInstance;
+  fixture.detectChanges();
+
+  http.expectOne('/api/boards').flush([
+    { id: 1, name: 'Zebra' },
+    { id: 2, name: 'Apple' }
+  ]);
+
+  const board = component.boards().find(b => b.id === 1)!;
+  component.startRename(board);
+  component.renameDraft = 'Aardvark';
+  component.saveRename(board);
+
+  const put = http.expectOne('/api/boards/1');
+  expect(put.request.method).toBe('PUT');
+  expect(put.request.body).toEqual({ name: 'Aardvark' });
+  put.flush({ id: 1, name: 'Aardvark' });
+
+  expect(component.boards().map(b => b.name)).toEqual(['Aardvark', 'Apple']);
+  expect(component.editingBoardId()).toBeNull();
+});
+```
+
+Copy the TestBed setup (`provideHttpClient()`, `provideHttpClientTesting()`)
+from `app.component.spec.ts`, and remember `afterEach(() => http.verify())`.
+
+</details>
 
 ## Validation
 
