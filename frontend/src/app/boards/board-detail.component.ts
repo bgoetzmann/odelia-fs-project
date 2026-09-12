@@ -141,6 +141,9 @@ export class BoardDetailComponent implements OnInit {
     if (card.id === undefined) {
       return;
     }
+    if (!confirm(`Delete "${card.title}"?`)) {
+      return;
+    }
     this.error.set(null);
     this.boardService.deleteCard(card.id).subscribe({
       next: () => this.mutate(card.listId, cards => {

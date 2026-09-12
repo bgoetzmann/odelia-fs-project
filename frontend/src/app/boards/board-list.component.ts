@@ -60,6 +60,9 @@ export class BoardListComponent implements OnInit {
     if (board.id === undefined) {
       return;
     }
+    if (!confirm(`Delete board "${board.name}"? This cannot be undone.`)) {
+      return;
+    }
     this.error.set(null);
     this.boardService.deleteBoard(board.id).subscribe({
       next: () => this.boards.update(boards => boards.filter(b => b.id !== board.id)),
