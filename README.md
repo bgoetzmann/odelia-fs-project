@@ -1,7 +1,6 @@
 # Kanban — Full-Stack Course Project
 
-OpenLiberty (Jakarta EE 11 Web Profile + MicroProfile 7.1) + Angular + PostgreSQL.
-See `fs-course-plan.md` for the full plan.
+OpenLiberty (Jakarta EE 11 Web Profile + MicroProfile 7.1) + Angular 20 + PostgreSQL.
 
 **The board is secured with Keycloak and MicroProfile JWT, and every board
 belongs to the person who created it.**
@@ -153,5 +152,3 @@ echo "$TOKEN" | cut -d. -f2 | base64 -d 2>/dev/null | jq '{iss, aud, preferred_u
   (redirects to the Keycloak login page). `BoardService` never mentions a token.
 - Angular 20 is used; it requires Node >= 20.19 (or 22.12+). The Dev Container
   ships Node 22, so there is no host Node version to worry about.
-
-See `fs-course-plan.md` for the course's day-by-day breakdown.
