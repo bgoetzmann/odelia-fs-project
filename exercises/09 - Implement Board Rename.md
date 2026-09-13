@@ -118,6 +118,7 @@ Create or extend the board-list component test to prove:
 Use the repository's TestBed pattern with:
 
 ```ts
+provideRouter(routes)
 provideHttpClient()
 provideHttpClientTesting()
 ```
@@ -151,8 +152,9 @@ it('PUTs the new name and re-sorts the list', () => {
 });
 ```
 
-Copy the TestBed setup (`provideHttpClient()`, `provideHttpClientTesting()`)
-from `app.component.spec.ts`, and remember `afterEach(() => http.verify())`.
+Copy the TestBed setup (`provideRouter(routes)`, `provideHttpClient()`,
+`provideHttpClientTesting()`) from `app.component.spec.ts`, and remember
+`afterEach(() => http.verify())`.
 
 </details>
 
