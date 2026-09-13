@@ -118,9 +118,13 @@ Create or extend the board-list component test to prove:
 Use the repository's TestBed pattern with:
 
 ```ts
+provideRouter(routes)
 provideHttpClient()
 provideHttpClientTesting()
 ```
+
+`provideRouter(routes)` is required because the board-list template uses
+`[routerLink]`, which needs a `Router` available via dependency injection.
 
 <details>
 <summary>Hint: the HttpTestingController test skeleton</summary>
@@ -151,8 +155,9 @@ it('PUTs the new name and re-sorts the list', () => {
 });
 ```
 
-Copy the TestBed setup (`provideHttpClient()`, `provideHttpClientTesting()`)
-from `app.component.spec.ts`, and remember `afterEach(() => http.verify())`.
+Copy the TestBed setup (`provideRouter(routes)`, `provideHttpClient()`,
+`provideHttpClientTesting()`) from `app.component.spec.ts`, and remember
+`afterEach(() => http.verify())`.
 
 </details>
 
@@ -188,4 +193,4 @@ Demonstrate:
 - Focus the input automatically.
 - Cancel on Escape.
 - Disable Save while the request is pending.
-- Preserve the draft and show an inline message when the request fails.
+
