@@ -123,6 +123,9 @@ provideHttpClient()
 provideHttpClientTesting()
 ```
 
+`provideRouter(routes)` is required because the board-list template uses
+`[routerLink]`, which needs a `Router` available via dependency injection.
+
 <details>
 <summary>Hint: the HttpTestingController test skeleton</summary>
 
@@ -190,4 +193,4 @@ Demonstrate:
 - Focus the input automatically.
 - Cancel on Escape.
 - Disable Save while the request is pending.
-- Preserve the draft and show an inline message when the request fails.
+
