@@ -22,8 +22,11 @@ export class BoardListComponent implements OnInit {
   readonly boards = signal<Board[]>([]);
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
+  readonly editingBoardId = signal<number | null>(null);
+  readonly renaming = signal(false);
 
   newBoardName = '';
+  renameDraft = '';
 
   ngOnInit(): void {
     this.reload();
@@ -74,5 +77,37 @@ export class BoardListComponent implements OnInit {
     console.error(message, err);
     this.error.set(message);
     this.loading.set(false);
+  }
+
+  startRename(board: Board): void {
+    this.editingBoardId.set(board.id ?? null);
+    this.renameDraft = board.name;
+  }
+
+  cancelRename(): void {
+    this.editingBoardId.set(null);
+    this.renameDraft = '';
+  }
+
+  saveRename(board: Board): void {
+    const name = this.renameDraft.trim();
+    if (!name || board.id === undefined) {
+      return;
+    }
+    this.error.set(null);
+    this.renaming.set(true);
+    this.boardService.renameBoard(board.id, name).subscribe({
+      next: updated => {
+        this.boards.update(list =>
+          list.map(b => (b.id === board.id ? updated : b))
+              .sort((a, b) => a.name.localeCompare(b.name)));
+        this.editingBoardId.set(null);
+        this.renaming.set(false);
+      },
+      error: err => {
+        this.renaming.set(false);
+        this.fail(`Could not rename "${board.name}"`, err)
+      }
+    });
   }
 }
