@@ -23,8 +23,7 @@
     "ghcr.io/devcontainers/features/node:2.1.0": {
       "version": "22"
     },
-    "ghcr.io/anthropics/devcontainer-features/claude-code:1.0": {},
-    "ghcr.io/devcontainers/features/copilot-cli:1": {}
+    "ghcr.io/anthropics/devcontainer-features/claude-code:1.0": {}
   },
 
   // 9080 = Liberty (mvn liberty:dev), 4200 = ng serve, 5432 = PostgreSQL,
