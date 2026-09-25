@@ -25,6 +25,7 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriInfo;
+import org.eclipse.microprofile.openapi.annotations.security.SecurityRequirement;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -41,6 +42,7 @@ import java.util.List;
 @Path("/boards")
 @RequestScoped
 @RolesAllowed({ CurrentUser.USER, CurrentUser.ADMIN })
+@SecurityRequirement(name = "bearerAuth")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class BoardResource {
