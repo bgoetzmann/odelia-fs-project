@@ -86,9 +86,12 @@ Also available and left open on purpose (ops endpoints, not user data):
 
 ### Trying it with curl
 
-The realm enables the password grant so a token can be fetched without a
-browser. Ask **localhost:8081** for it — a token minted at `keycloak:8080`
+The realm enables the password grant so a token can be fetched without a browser.
+Run these commands from your host machine (not the Dev Container's integrated terminal) —
+Ask **localhost:8081** for it — a token minted at `keycloak:8080`
 carries the wrong `iss` and the backend rejects it.
+
+**bash / curl**
 
 ```bash
 TOKEN=$(curl -s http://localhost:8081/realms/kanban/protocol/openid-connect/token \
@@ -113,6 +116,38 @@ curl -i http://localhost:9080/api/boards
 
 # what the backend sees in the token
 echo "$TOKEN" | cut -d. -f2 | base64 -d 2>/dev/null | jq '{iss, aud, preferred_username, groups}'
+```
+
+**PowerShell**
+
+```powershell
+$resp = Invoke-RestMethod -Method Post `
+    -Uri http://localhost:8081/realms/kanban/protocol/openid-connect/token `
+    -Body @{ grant_type = "password"; client_id = "kanban-app"; username = "alice"; password = "alice" }
+$TOKEN = $resp.access_token
+
+Invoke-RestMethod -Uri http://localhost:9080/api/boards -Headers @{ Authorization = "Bearer $TOKEN" }
+Invoke-RestMethod -Method Post -Uri http://localhost:9080/api/boards `
+    -Headers @{ Authorization = "Bearer $TOKEN" } -ContentType "application/json" `
+    -Body '{"name":"Sprint 1"}'
+
+# add a card to a column, then move it to another column at position 0
+Invoke-RestMethod -Method Post -Uri http://localhost:9080/api/lists/1/cards `
+    -Headers @{ Authorization = "Bearer $TOKEN" } -ContentType "application/json" `
+    -Body '{"title":"Write the README"}'
+Invoke-RestMethod -Method Patch -Uri http://localhost:9080/api/cards/1/move `
+    -Headers @{ Authorization = "Bearer $TOKEN" } -ContentType "application/json" `
+    -Body '{"targetListId":2,"position":0}'
+
+# without a token: 401
+try { Invoke-RestMethod -Uri http://localhost:9080/api/boards }
+catch { $_.Exception.Response.StatusCode }
+
+# what the backend sees in the token
+$payload = $TOKEN.Split('.')[1].Replace('-', '+').Replace('_', '/')
+$payload += '=' * ((4 - $payload.Length % 4) % 4)
+[Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($payload)) |
+    ConvertFrom-Json | Select-Object iss, aud, preferred_username, groups
 ```
 
 ## Notes on the stack
