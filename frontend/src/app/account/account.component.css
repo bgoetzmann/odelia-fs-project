@@ -1,0 +1,68 @@
+.account-panel {
+  max-width: 46rem;
+  margin: 0 auto;
+}
+
+.identity {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.identity th,
+.identity td {
+  text-align: left;
+  padding: 0.6rem 0.9rem;
+  border-bottom: 1px solid #e2e8f0;
+  vertical-align: top;
+}
+
+.identity tbody th {
+  color: #64748b;
+  font-weight: 600;
+  width: 6rem;
+}
+
+.identity tr:last-child th,
+.identity tr:last-child td {
+  border-bottom: none;
+}
+
+.role {
+  display: inline-block;
+  background: #e0e7ff;
+  color: #3730a3;
+  border-radius: 999px;
+  padding: 0.05rem 0.5rem;
+  font-size: 0.85rem;
+  margin: 0.1rem 0.25rem 0.1rem 0;
+}
+
+.role.only-here {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.mismatch {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.muted {
+  color: #64748b;
+}
+
+.note {
+  font-size: 0.85rem;
+  margin-top: 0.75rem;
+}
+
+.error {
+  color: #b91c1c;
+  background: #fee2e2;
+  border-radius: 6px;
+  padding: 0.6rem 0.8rem;
+}

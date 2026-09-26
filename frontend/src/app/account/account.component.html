@@ -1,0 +1,53 @@
+<section class="account-panel">
+  <h2>Your account</h2>
+
+  @if (error()) {
+    <p class="error">{{ error() }}</p>
+  }
+
+  @if (loading()) {
+    <p class="muted">Loading /api/me…</p>
+  } @else if (backendUser()) {
+    <table class="identity">
+      <thead>
+        <tr>
+          <th></th>
+          <th>Frontend (keycloak-js)</th>
+          <th>Backend (<code>GET /api/me</code>)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th>Username</th>
+          <td [class.mismatch]="!usernameMatches()">{{ auth.username() }}</td>
+          <td [class.mismatch]="!usernameMatches()">{{ backendUser()!.username }}</td>
+        </tr>
+        <tr>
+          <th>Roles</th>
+          <td>
+            @for (role of auth.roles(); track role) {
+              <span class="role" [class.only-here]="frontendOnlyRoles().includes(role)">{{ role }}</span>
+            }
+          </td>
+          <td>
+            @for (role of backendUser()!.roles; track role) {
+              <span class="role" [class.only-here]="backendOnlyRoles().includes(role)">{{ role }}</span>
+            }
+          </td>
+        </tr>
+        <tr>
+          <th>Admin</th>
+          <td [class.mismatch]="!adminMatches()">{{ auth.isAdmin() }}</td>
+          <td [class.mismatch]="!adminMatches()">{{ backendUser()!.admin }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    @if (frontendOnlyRoles().length || backendOnlyRoles().length) {
+      <p class="muted note">
+        Highlighted roles appear on only one side - the realm's "realm roles as groups" mapper
+        does not always carry over every role keycloak-js sees in <code>realm_access.roles</code>.
+      </p>
+    }
+  }
+</section>

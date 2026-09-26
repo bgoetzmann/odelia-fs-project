@@ -4,7 +4,7 @@
 
   @if (auth.authenticated()) {
     <div class="account">
-      <span class="user">{{ auth.username() }}</span>
+      <a class="user" routerLink="/account">{{ auth.username() }}</a>
       @if (auth.isAdmin()) {
         <span class="badge">admin</span>
       }
