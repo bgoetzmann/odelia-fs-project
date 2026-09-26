@@ -32,7 +32,8 @@ raw token.
 
 - The endpoint is under `/api/me`.
 - A missing or invalid token is rejected.
-- A caller needs the normal application role.
+- A caller needs the normal application role (`CurrentUser.USER`), the same role
+  other resources require for everyday access.
 - `username` comes from the same identity interpretation used for board ownership.
 - Roles come from validated token claims.
 - `admin` is consistent with existing administrator behavior.
@@ -43,9 +44,6 @@ raw token.
 ```bash
 git switch -c exercise/current-user-endpoint
 ```
-
-Use the fixed course revision. Repository milestone labels do not map directly
-to presentation days.
 
 ## 2. Inspect Existing Security Abstractions
 
@@ -121,7 +119,3 @@ Demonstrate:
 - Compare the frontend's Keycloak-derived identity with the backend response.
 - Add targeted backend tests if the project is extended with a test framework.
 
-## Instructor Reference
-
-The demo repository includes a related detailed brief:
-[`exercises/jwt-me-endpoint.md`](https://github.com/bgoetzmann/odelia-fs-project/blob/cd17731f160092614449e52e26d4e1a8ae19fe2f/exercises/jwt-me-endpoint.md).
