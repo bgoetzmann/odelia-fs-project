@@ -34,14 +34,14 @@ git switch -c exercise/board-ownership-tests
 
 ## 2. Add JUnit 5 to the Backend
 
-Open `backend/pom.xml`. There is currently no test dependency and no
-`maven-surefire-plugin` configuration. Add:
-
-- `org.junit.jupiter:junit-jupiter` (`test` scope) so `mvn test` has
-  something to run.
-- Confirm (or add) a Surefire plugin version compatible with JUnit 5's
-  `junit-platform` provider; recent Surefire versions support it out of the
-  box.
+`backend/pom.xml` already carries `org.junit.jupiter:junit-jupiter` (`test`
+scope) and a `maven-surefire-plugin` version compatible with JUnit 5's
+`junit-platform` provider, so `mvn test` has something to run. It also
+carries a `test`-scoped `org.jboss.resteasy:resteasy-core` — outside a
+running Liberty server nothing implements `jakarta.ws.rs.ext.RuntimeDelegate`,
+which the `ForbiddenException` constructor needs to build its `Response`; the
+denied-path test in step 5 would otherwise fail with a `ClassNotFoundException`
+instead of catching the exception you're testing for.
 
 Create the standard Maven test source root if it does not exist:
 
