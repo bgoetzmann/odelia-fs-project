@@ -92,8 +92,3 @@ POST JSON
 ## Stretch Task
 
 Trace board deletion and identify where dependent lists and cards are removed.
-
-## Instructor References
-
-- [Board resource](https://github.com/bgoetzmann/odelia-fs-project/blob/cd17731f160092614449e52e26d4e1a8ae19fe2f/backend/src/main/java/com/odelia/kanban/resource/BoardResource.java)
-- [Board-list resource](https://github.com/bgoetzmann/odelia-fs-project/blob/cd17731f160092614449e52e26d4e1a8ae19fe2f/backend/src/main/java/com/odelia/kanban/resource/BoardListResource.java)

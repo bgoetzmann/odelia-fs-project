@@ -90,8 +90,3 @@ Classify each artifact:
 
 Both partners can explain how a Java class becomes reachable at an HTTP URL
 inside Open Liberty.
-
-## Instructor References
-
-- [Backend project](https://github.com/bgoetzmann/odelia-fs-project/tree/cd17731f160092614449e52e26d4e1a8ae19fe2f/backend)
-- [JAX-RS application](https://github.com/bgoetzmann/odelia-fs-project/blob/cd17731f160092614449e52e26d4e1a8ae19fe2f/backend/src/main/java/com/odelia/kanban/resource/KanbanApplication.java)

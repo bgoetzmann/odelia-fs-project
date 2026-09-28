@@ -219,10 +219,3 @@ the risk Snippet C was flagged for above. It doesn't break the *ownership*
 check itself, but it does undermine the broader intent behind having a
 narrow, purpose-built mapper for expected security denials versus letting
 unexpected failures leak detail.
-
-## Instructor References
-
-- [server.xml](https://github.com/bgoetzmann/odelia-fs-project/blob/f108062ed526e83ba711f481504061b73b71c840/backend/src/main/liberty/config/server.xml)
-- [microprofile-config.properties](https://github.com/bgoetzmann/odelia-fs-project/blob/f108062ed526e83ba711f481504061b73b71c840/backend/src/main/resources/META-INF/microprofile-config.properties)
-- [ForbiddenExceptionMapper](https://github.com/bgoetzmann/odelia-fs-project/blob/f108062ed526e83ba711f481504061b73b71c840/backend/src/main/java/com/odelia/kanban/security/ForbiddenExceptionMapper.java)
-- [docker-compose.yml](https://github.com/bgoetzmann/odelia-fs-project/blob/f108062ed526e83ba711f481504061b73b71c840/docker-compose.yml)
