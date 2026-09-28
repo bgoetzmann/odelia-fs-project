@@ -161,10 +161,3 @@ simpler resource code (`accessibleBoard` always distinguishes "gone" from
 "not yours") — rather than the stricter alternative of returning `404` for
 both cases to hide existence entirely, which some APIs choose instead when
 resource existence itself is sensitive.
-
-## Instructor References
-
-- [Current user](https://github.com/bgoetzmann/odelia-fs-project/blob/cd17731f160092614449e52e26d4e1a8ae19fe2f/backend/src/main/java/com/odelia/kanban/security/CurrentUser.java)
-- [Board access](https://github.com/bgoetzmann/odelia-fs-project/blob/cd17731f160092614449e52e26d4e1a8ae19fe2f/backend/src/main/java/com/odelia/kanban/security/BoardAccess.java)
-- [Forbidden mapper](https://github.com/bgoetzmann/odelia-fs-project/blob/cd17731f160092614449e52e26d4e1a8ae19fe2f/backend/src/main/java/com/odelia/kanban/security/ForbiddenExceptionMapper.java)
-- [README token commands](https://github.com/bgoetzmann/odelia-fs-project/blob/cd17731f160092614449e52e26d4e1a8ae19fe2f/README.md#trying-it-with-curl)

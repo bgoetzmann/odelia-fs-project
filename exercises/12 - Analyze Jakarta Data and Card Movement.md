@@ -95,9 +95,3 @@ cards.save(card);
 
 Delete a card from the middle of a list and find the source logic that closes
 the position gap.
-
-## Instructor References
-
-- [Entities](https://github.com/bgoetzmann/odelia-fs-project/tree/cd17731f160092614449e52e26d4e1a8ae19fe2f/backend/src/main/java/com/odelia/kanban/entity)
-- [Repositories](https://github.com/bgoetzmann/odelia-fs-project/tree/cd17731f160092614449e52e26d4e1a8ae19fe2f/backend/src/main/java/com/odelia/kanban/repository)
-- [Card resource](https://github.com/bgoetzmann/odelia-fs-project/blob/cd17731f160092614449e52e26d4e1a8ae19fe2f/backend/src/main/java/com/odelia/kanban/resource/CardResource.java)

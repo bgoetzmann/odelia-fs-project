@@ -189,9 +189,3 @@ ordered by position with the deleted card's id excluded, and `renumber(...)`
 rewrites their `position` fields to `0, 1, 2, ...` and saves only the ones
 that actually changed — the same `renumber`/`remaining` helpers used by
 `move`.
-
-## Instructor References
-
-- [Entities](https://github.com/bgoetzmann/odelia-fs-project/tree/cd17731f160092614449e52e26d4e1a8ae19fe2f/backend/src/main/java/com/odelia/kanban/entity)
-- [Repositories](https://github.com/bgoetzmann/odelia-fs-project/tree/cd17731f160092614449e52e26d4e1a8ae19fe2f/backend/src/main/java/com/odelia/kanban/repository)
-- [Card resource](https://github.com/bgoetzmann/odelia-fs-project/blob/cd17731f160092614449e52e26d4e1a8ae19fe2f/backend/src/main/java/com/odelia/kanban/resource/CardResource.java)

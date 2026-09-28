@@ -149,8 +149,3 @@ This cascade is handled explicitly in the resource layer (loop + repository
 calls), not by a database `ON DELETE CASCADE` — cards must go before lists,
 and lists before the board, or the deletes would fail on foreign-key
 constraints.
-
-## Instructor References
-
-- [Board resource](https://github.com/bgoetzmann/odelia-fs-project/blob/cd17731f160092614449e52e26d4e1a8ae19fe2f/backend/src/main/java/com/odelia/kanban/resource/BoardResource.java)
-- [Board-list resource](https://github.com/bgoetzmann/odelia-fs-project/blob/cd17731f160092614449e52e26d4e1a8ae19fe2f/backend/src/main/java/com/odelia/kanban/resource/BoardListResource.java)
