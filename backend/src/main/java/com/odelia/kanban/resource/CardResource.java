@@ -22,6 +22,7 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.security.SecurityRequirement;
 
 import java.util.ArrayList;
@@ -92,6 +93,7 @@ public class CardResource {
     @PATCH
     @Path("/{id}/move")
     @Transactional
+    @Operation(operationId = "moveCard")
     public Card move(@PathParam("id") long id, @Valid MoveCommand command) {
         Card card = accessibleCard(id);
 

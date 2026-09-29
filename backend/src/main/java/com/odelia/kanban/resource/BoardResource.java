@@ -25,6 +25,7 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriInfo;
+import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.security.SecurityRequirement;
 
 import java.time.LocalDateTime;
@@ -69,6 +70,7 @@ public class BoardResource {
 
     /** The caller's own boards - or every board, for an admin. */
     @GET
+    @Operation(operationId = "getBoards")
     public List<Board> listBoards() {
         return currentUser.isAdmin()
                 ? boards.findAllSortedByName()
