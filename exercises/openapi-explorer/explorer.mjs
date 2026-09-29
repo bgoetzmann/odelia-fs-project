@@ -84,7 +84,10 @@ async function callOperation(spec, operationId, { token, body }) {
   try {
     console.log(JSON.stringify(JSON.parse(text), null, 2));
   } catch {
-    console.log(text);
+    // Not JSON (e.g. a default container error body) - bare \r in the raw
+    // text makes the terminal overwrite already-printed characters, so
+    // normalize line endings before printing.
+    console.log(text.replace(/\r\n?/g, "\n"));
   }
 }
 

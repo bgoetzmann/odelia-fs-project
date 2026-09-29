@@ -112,9 +112,11 @@ the host, issues one the backend accepts.
    and `owner` that you didn't send yourself?
 
 5. **Break something on purpose.**
-   - Send a body missing `name` to `POST /api/boards` and read the resulting
-     error response. Note the status code and whether the message tells you
-     what was wrong.
+   - Send a body missing `name` to `POST /api/boards`:
+     ```bash
+     node explorer.mjs call "POST /api/boards" --token "$TOKEN" --body '{}'
+     ```
+     Note the status code and whether the message tells you what was wrong.
    - Now send a body with an extra, unexpected field (e.g.
      `{"name":"Explorer Demo","bogus":"x"}`). It succeeds (`201`) and `bogus`
      is silently dropped — no strict/"unknown property" checking is enabled
