@@ -1,7 +1,7 @@
 # Exercise — Explore the OpenAPI Contract from a Node Script
 
 **Track:** Full-stack — the OpenAPI contract, no build toolchain  
-**Starting point:** any commit with the backend up and `/openapi` reachable  
+**Starting point:** backend up and `/openapi` reachable  
 **Estimated time:** 45–60 min  
 **Setup:** none beyond what the dev container already has — no `npm install`, no pip, no new devcontainer feature
 
